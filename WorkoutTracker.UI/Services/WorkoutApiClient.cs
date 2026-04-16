@@ -5,17 +5,21 @@ namespace WorkoutTracker.UI.Services;
 
 public class WorkoutApiClient
 {
-    private readonly HttpClient _http;
+    private readonly HttpClient _httpClient;
 
-    public WorkoutApiClient(HttpClient http)
+    public WorkoutApiClient(HttpClient httpClient)
     {
-        _http = http;
+        _httpClient = httpClient;
     }
 
     public async Task<List<Workout>> GetWorkouts()
-        => await _http.GetFromJsonAsync<List<Workout>>("api/workouts")
-           ?? new List<Workout>();
+    {
+        return await _httpClient.GetFromJsonAsync<List<Workout>>("api/workouts")
+               ?? new List<Workout>();
+    }
 
-    public async Task<Workout?> GetWorkout(int id)
-        => await _http.GetFromJsonAsync<Workout>($"api/workouts/{id}");
+    public async Task<Workout?> GetWorkoutDetails(int id)
+    {
+        return await _httpClient.GetFromJsonAsync<Workout>($"api/workouts/{id}");
+    }
 }

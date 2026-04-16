@@ -1,20 +1,27 @@
 ﻿using WorkoutTracker.DAL;
 using WorkoutTracker.Models;
 
-namespace WorkoutTracker.Logic;
+namespace WorkoutTracker.Logic.Services;
 
 public class WorkoutService
 {
-    private readonly WorkoutRepository _repo;
+    private readonly WorkoutRepository _workoutRepository;
 
-    public WorkoutService(WorkoutRepository repo)
+    public WorkoutService(WorkoutRepository workoutRepository)
     {
-        _repo = repo;
+        _workoutRepository = workoutRepository;
     }
 
-    public Task<List<Workout>> GetAllWorkouts()
-        => _repo.GetAllAsync();
+    public async Task<List<Workout>> GetAllAsync()
+    {
+        return await _workoutRepository.GetAllAsync();
+    }
 
-    public Task<Workout?> GetWorkout(int id)
-        => _repo.GetByIdAsync(id);
+    public async Task<Workout?> GetWorkoutDetailsAsync(int id)
+    {
+        // This one is currently sync in DAL, but we keep async at the boundary
+        return await Task.FromResult(
+            _workoutRepository.GetWorkoutWithExercises(id)
+        );
+    }
 }

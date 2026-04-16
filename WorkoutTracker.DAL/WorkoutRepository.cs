@@ -1,5 +1,6 @@
 ﻿using WorkoutTracker.Models;
 using MySqlConnector;
+using System.Data;
 
 namespace WorkoutTracker.DAL;
 
@@ -56,5 +57,59 @@ public class WorkoutRepository
             Name = reader.GetString("name"),
             Description = reader.GetString("description")
         };
+    }
+
+    public Workout? GetWorkoutWithExercises(int workoutId)
+    {
+        Workout? workout = null;
+
+        using var connection = _factory.Create();
+        connection.Open();
+
+        var sql = @"
+        SELECT 
+            w.id AS WorkoutId,
+            w.name AS WorkoutName,
+            w.description,
+            e.id AS ExerciseId,
+            e.name AS ExerciseName,
+            e.sets,
+            e.reps
+        FROM workout w
+        LEFT JOIN exercise e ON e.workout_id = w.id
+        WHERE w.id = @id;
+    ";
+
+        using var command = new MySqlCommand(sql, connection);
+        command.Parameters.AddWithValue("@id", workoutId);
+
+        using var reader = command.ExecuteReader();
+
+        while (reader.Read())
+        {
+            if (workout == null)
+            {
+                workout = new Workout
+                {
+                    Id = reader.GetInt32("WorkoutId"),
+                    Name = reader.GetString("WorkoutName"),
+                    Description = reader.GetString("description")
+                };
+            }
+
+            if (!reader.IsDBNull("ExerciseId"))
+            {
+                workout.Exercises.Add(new Exercise
+                {
+                    Id = reader.GetInt32("ExerciseId"),
+                    Name = reader.GetString("ExerciseName"),
+                    Sets = reader.GetInt32("sets"),
+                    Reps = reader.GetInt32("reps"),
+                    WorkoutId = workout.Id
+                });
+            }
+        }
+
+        return workout;
     }
 }

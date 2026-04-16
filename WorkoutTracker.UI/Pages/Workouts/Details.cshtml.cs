@@ -7,21 +7,23 @@ namespace WorkoutTracker.UI.Pages.Workouts;
 
 public class DetailsModel : PageModel
 {
-    private readonly WorkoutApiClient _api;
+    private readonly WorkoutApiClient _apiClient;
 
-    public Workout? Workout { get; set; }
-
-    public DetailsModel(WorkoutApiClient api)
+    public DetailsModel(WorkoutApiClient apiClient)
     {
-        _api = api;
+        _apiClient = apiClient;
     }
+
+    public Workout? Workout { get; private set; }
 
     public async Task<IActionResult> OnGet(int id)
     {
-        Workout = await _api.GetWorkout(id);
+        Workout = await _apiClient.GetWorkoutDetails(id);
 
         if (Workout == null)
+        {
             return NotFound();
+        }
 
         return Page();
     }

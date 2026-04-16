@@ -2,5 +2,33 @@
 @model WorkoutTracker.UI.Pages.Workouts.DetailsModel
 
 <h1>@Model.Workout?.Name</h1>
-
 <p>@Model.Workout?.Description</p>
+
+<h2>Exercises</h2>
+
+@if (Model.Workout?.Exercises.Any() == true)
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Sets</th>
+                <th>Reps</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var exercise in Model.Workout.Exercises)
+            {
+                <tr>
+                    <td>@exercise.Name</td>
+                    <td>@exercise.Sets</td>
+                    <td>@exercise.Reps</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No exercises found.</p>
+}
