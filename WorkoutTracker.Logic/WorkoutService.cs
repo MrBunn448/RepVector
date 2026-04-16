@@ -19,7 +19,7 @@ public class WorkoutService
 
     public async Task<Workout?> GetWorkoutDetailsAsync(int id)
     {
-        // This one is currently sync in DAL, but we keep async at the boundary
+
         return await Task.FromResult(
             _workoutRepository.GetWorkoutWithExercises(id)
         );
