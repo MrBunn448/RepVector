@@ -1,0 +1,53 @@
+# Local configuration
+**/appsettings.Development.json
+
+# Build results
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# IDEs
+.idea/
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# .NET
+*.dll
+*.pdb
+*.cache
+*.log
+
+# NuGet
+packages/
+*.nupkg
+*.snupkg
+
+# Environment-specific configuration
+**/appsettings.Development.json
+**/appsettings.Local.json
+**/appsettings.Production.json
+
+# User secrets
+**/secrets.json
+
+# Publish output
+publish/
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*.old

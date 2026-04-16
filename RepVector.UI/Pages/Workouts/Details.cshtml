@@ -1,0 +1,36 @@
+﻿@page "{id:int}"
+@model RepVector.UI.Pages.Workouts.DetailsModel
+
+@if (Model.Workout == null)
+{
+    <p>Workout not found.</p>
+}
+else
+{
+    <h1>@Model.Workout.Name</h1>
+    <p>@Model.Workout.Description</p>
+
+    <h2>Exercises</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Sets</th>
+                <th>Reps</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var exercise in Model.Workout.Exercises)
+            {
+                <tr>
+                    <td>@exercise.Name</td>
+                    <td>@exercise.Sets</td>
+                    <td>@exercise.Reps</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <a asp-page="Index">Back to workouts</a>
+}

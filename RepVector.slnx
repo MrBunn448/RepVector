@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="RepVector.Api/RepVector.Api.csproj" />
+  <Project Path="RepVector.DAL.Interfaces/RepVector.DAL.Interfaces.csproj" />
+  <Project Path="RepVector.DAL/RepVector.DAL.csproj" />
+  <Project Path="RepVector.Logic/RepVector.Logic.csproj" />
+  <Project Path="RepVector.Models/RepVector.Models.csproj" />
+  <Project Path="RepVector.UI/RepVector.UI.csproj" />
+</Solution>

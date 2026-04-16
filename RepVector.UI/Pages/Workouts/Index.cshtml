@@ -1,0 +1,28 @@
+﻿@page
+@model RepVector.UI.Pages.Workouts.IndexModel
+
+<h1>Workouts</h1>
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var workout in Model.Workouts)
+        {
+            <tr>
+                <td>@workout.Name</td>
+                <td>@workout.Description</td>
+                <td>
+                    <a asp-page="Details" asp-route-id="@workout.Id">
+                        View
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
