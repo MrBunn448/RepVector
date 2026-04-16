@@ -1,0 +1,18 @@
+﻿@page
+@model WorkoutTracker.UI.Pages.Workouts.IndexModel
+
+<h1>Workouts</h1>
+
+<ul>
+@foreach (var workout in Model.Workouts)
+{
+    <li>
+        <a href="/Workouts/Details/@workout.Id">
+            @workout.Name
+        </a>
+        <a href="/Workouts/Details/@workout.Id">
+                @workout.Description
+        </a>
+    </li>
+}
+</ul>
