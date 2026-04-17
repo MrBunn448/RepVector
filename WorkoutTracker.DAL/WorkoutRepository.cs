@@ -4,7 +4,7 @@ using System.Data;
 
 namespace WorkoutTracker.DAL;
 
-public class WorkoutRepository
+public class WorkoutRepository : IWorkoutRepository
 {
     private readonly DbConnectionFactory _factory;
 

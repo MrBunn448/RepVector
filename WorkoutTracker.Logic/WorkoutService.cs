@@ -5,9 +5,9 @@ namespace WorkoutTracker.Logic.Services;
 
 public class WorkoutService
 {
-    private readonly WorkoutRepository _workoutRepository;
+    private readonly IWorkoutRepository _workoutRepository;
 
-    public WorkoutService(WorkoutRepository workoutRepository)
+    public WorkoutService(IWorkoutRepository workoutRepository)
     {
         _workoutRepository = workoutRepository;
     }
@@ -19,7 +19,6 @@ public class WorkoutService
 
     public async Task<Workout?> GetWorkoutDetailsAsync(int id)
     {
-
         return await Task.FromResult(
             _workoutRepository.GetWorkoutWithExercises(id)
         );

@@ -4,6 +4,7 @@
   </Folder>
   <Project Path="WorkoutTracker.Api/WorkoutTracker.Api.csproj" />
   <Project Path="WorkoutTracker.DAL/WorkoutTracker.DAL.csproj" />
+  <Project Path="WorkoutTracker.Logic.Tests/WorkoutTracker.Logic.Tests.csproj" Id="ffed2d05-9924-465f-b55f-fc8b86ab8623" />
   <Project Path="WorkoutTracker.Logic/WorkoutTracker.Logic.csproj" />
   <Project Path="WorkoutTracker.Models/WorkoutTracker.Models.csproj" />
   <Project Path="WorkoutTracker.UI/WorkoutTracker.UI.csproj" />

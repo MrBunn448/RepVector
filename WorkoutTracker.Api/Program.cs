@@ -18,7 +18,7 @@ builder.Services.AddSingleton(new DbConnectionFactory(connectionString));
 //AddScoped      → one per HTTP request
 //AddTransient   → new every time
 
-builder.Services.AddScoped<WorkoutRepository>();
+builder.Services.AddScoped<IWorkoutRepository, WorkoutRepository>();
 builder.Services.AddScoped<WorkoutService>(); 
 
 builder.Services.AddControllers();
