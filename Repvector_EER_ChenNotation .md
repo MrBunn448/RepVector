@@ -1,4 +1,19 @@
-// In Visual Studio Code 1.121.0 and later, you can view this mermaid diagram directly in Visual Studio code. A community extention for viewing was intergrated into visual studio itself.
+NOTE: In Visual Studio Code 1.121.0 and later, you can view this mermaid diagram directly in Visual Studio code. A community extention for viewing was intergrated into visual studio itself.
+
+## Design Reasoning (EER)
+*   **Specialization (ISA)**: Used for both **Users** (Admin vs.
+Standard) and **Exercises/Workouts** (System vs. Custom). This allows
+the application to handle global master-data and private user-data
+within the same logical structure.
+*   **Weak Entity (User_Preferences)**: Labeled as weak because it
+shares its identity with the `User`. It has no independent Primary Key;
+it uses the `user_id` to exist, ensuring a strict 1:1 dependency.
+*   **Identifying Relationship**: The double-diamond `Has` relationship
+indicates that if a User is deleted, their preferences must also be
+purged (Existence Dependency).
+*   **Cardinality (1:N and M:N)**: Clearly distinguishes that while a
+User owns many Sessions (1:N), the relationship between Workouts and
+Exercises is Many-to-Many (M:N), requiring an associative link.
 
 Enhanced Entity-Relationship (EER) Diagram for the Workout Tracking System using Chen Notation:
 ```mermaid
