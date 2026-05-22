@@ -1,0 +1,70 @@
+@page
+@model WorkoutTracker.UI.Pages.User.SettingsModel
+@{
+    ViewData["Title"] = "Settings";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h4 class="fw-bold mb-0">Account Settings</h4>
+                </div>
+                <div class="card-body p-4">
+                    @if (!string.IsNullOrEmpty(Model.StatusMessage))
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="bi bi-check-circle-fill me-2"></i> @Model.StatusMessage
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <form method="post">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-uppercase text-muted">Profile Information</label>
+                            <div class="mb-3">
+                                <label for="Username" class="form-label">Display Username</label>
+                                <input type="text" class="form-control" id="Username" asp-for="Preferences.Username" placeholder="Enter your username">
+                                <div class="form-text">This name will be displayed on your dashboard.</div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-uppercase text-muted">Measurement Units</label>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Weight Unit</label>
+                                <div class="btn-group w-100" role="group">
+                                    <input type="radio" class="btn-check" name="Preferences.WeightUnit" id="kg" value="KG" @(Model.Preferences.WeightUnit == "KG" ? "checked" : "")>
+                                    <label class="btn btn-outline-primary" for="kg">Kilograms (KG)</label>
+
+                                    <input type="radio" class="btn-check" name="Preferences.WeightUnit" id="lbs" value="LBS" @(Model.Preferences.WeightUnit == "LBS" ? "checked" : "")>
+                                    <label class="btn btn-outline-primary" for="lbs">Pounds (LBS)</label>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Distance Unit</label>
+                                <div class="btn-group w-100" role="group">
+                                    <input type="radio" class="btn-check" name="Preferences.DistanceUnit" id="km" value="KM" @(Model.Preferences.DistanceUnit == "KM" ? "checked" : "")>
+                                    <label class="btn btn-outline-primary" for="km">Kilometers (KM)</label>
+
+                                    <input type="radio" class="btn-check" name="Preferences.DistanceUnit" id="miles" value="Miles" @(Model.Preferences.DistanceUnit == "Miles" ? "checked" : "")>
+                                    <label class="btn btn-outline-primary" for="miles">Miles (Mi)</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-5">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold">Save Changes</button>
+                            <a href="/User" class="btn btn-link text-muted">Back to Dashboard</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

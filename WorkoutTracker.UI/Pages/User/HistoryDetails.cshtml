@@ -1,0 +1,109 @@
+@page "{id:int}"
+@model WorkoutTracker.UI.Pages.User.HistoryDetailsModel
+@{
+    ViewData["Title"] = "Session Details";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/User/Index">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Session Details</li>
+                </ol>
+            </nav>
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-dark text-white py-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="fw-bold mb-1">@(Model.Session?.WorkoutName ?? $"Session #{Model.Session?.Id}")</h2>
+                            <div class="text-primary-emphasis opacity-75">
+                                <i class="bi bi-calendar3 me-2"></i> @Model.Session?.StartedAt.ToString("MMMM dd, yyyy @ HH:mm")
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <form method="post" asp-page-handler="Delete" onsubmit="return confirm('Permanently delete this session from history?')">
+                                <button type="submit" class="btn btn-outline-danger">
+                                    <i class="bi bi-trash me-1"></i> Delete Session
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="row g-0 text-center border-bottom">
+                        <div class="col-6 py-4 border-end">
+                            <div class="display-6 fw-bold">
+                                @{
+                                    var duration = TimeSpan.FromSeconds(Model.Session?.TotalSeconds ?? 0);
+                                    var durationStr = $"{(int)duration.TotalMinutes}m {duration.Seconds}s";
+                                }
+                                @durationStr
+                            </div>
+                            <div class="text-muted small text-uppercase fw-bold">Duration</div>
+                        </div>
+                        <div class="col-6 py-4">
+                            <div class="display-6 fw-bold text-success">
+                                @Model.Session?.Status.ToUpper()
+                            </div>
+                            <div class="text-muted small text-uppercase fw-bold">Status</div>
+                        </div>
+                    </div>
+
+                    <div class="p-4">
+                        <h4 class="fw-bold mb-4">Log Summary</h4>
+                        
+                        @if (Model.Session?.SetLogs == null || !Model.Session.SetLogs.Any())
+                        {
+                            <div class="alert alert-light border text-center py-5">
+                                <i class="bi bi-info-circle display-6 d-block mb-3"></i>
+                                No sets were logged during this session.
+                            </div>
+                        }
+                        else
+                        {
+                            var groupedLogs = Model.Session.SetLogs.GroupBy(l => l.ExerciseId);
+                            foreach (var group in groupedLogs)
+                            {
+                                <div class="card mb-4 border-0 shadow-sm bg-light">
+                                    <div class="card-header bg-white py-3 border-0">
+                                        <h5 class="fw-bold mb-0 text-primary">@group.First().Exercise?.Name</h5>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover mb-0 align-middle">
+                                            <thead>
+                                                <tr>
+                                                    <th class="ps-4" style="width: 80px;">Set</th>
+                                                    <th>Type</th>
+                                                    <th>Weight</th>
+                                                    <th>Reps</th>
+                                                    <th>RPE</th>
+                                                    <th class="text-end pe-4">Time</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var log in group)
+                                                {
+                                                    <tr>
+                                                        <td class="ps-4 fw-bold">@log.SetNumber</td>
+                                                        <td><span class="badge bg-outline-secondary border text-dark">@log.SetType</span></td>
+                                                        <td class="fw-bold">@log.Weight @Model.Preferences.WeightUnit</td>
+                                                        <td>@log.Reps Reps</td>
+                                                        <td>@(log.Rpe?.ToString() ?? "-")</td>
+                                                        <td class="text-end pe-4 text-muted small">@log.CompletedAt.ToString("HH:mm:ss")</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

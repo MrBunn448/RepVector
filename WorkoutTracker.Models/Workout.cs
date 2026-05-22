@@ -1,15 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace WorkoutTracker.Models;
 
-namespace WorkoutTracker.Models
+public class Workout
 {
-    public class Workout
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
 
-        public List<Exercise> Exercises { get; set; } = new();
-    }
+    public int Id { get; set; }
+
+    public int? UserId { get; set; }
+
+    public string Name { get; set; } = string.Empty;
+
+    public string? Description { get; set; }
+
+    public bool IsPredefined { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+
+    public List<WorkoutExercise> Exercises { get; set; } = new();
 }

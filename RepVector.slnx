@@ -2,6 +2,7 @@
   <Folder Name="/Solution Items/">
     <File Path=".gitignore" />
   </Folder>
+  <Project Path="WorkoutTracker.IntegrationTests/WorkoutTracker.IntegrationTests.csproj" />
   <Project Path="WorkoutTracker.Api/WorkoutTracker.Api.csproj" />
   <Project Path="WorkoutTracker.DAL/WorkoutTracker.DAL.csproj" />
   <Project Path="WorkoutTracker.Logic.Tests/WorkoutTracker.Logic.Tests.csproj" Id="ffed2d05-9924-465f-b55f-fc8b86ab8623" />

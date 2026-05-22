@@ -2,28 +2,33 @@ using WorkoutTracker.UI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddRazorPages();
 
-builder.Services.AddHttpClient<WorkoutApiClient>((sp, client) =>
+builder.Services.AddSession(options =>
 {
-    var config = sp.GetRequiredService<IConfiguration>();
-    client.BaseAddress = new Uri(config["ApiSettings:BaseUrl"]);
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
 });
+
+var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"] ?? "https://localhost:7162";
+
+builder.Services.AddHttpClient<WorkoutApiClient>(client => client.BaseAddress = new Uri(apiBaseUrl));
+builder.Services.AddHttpClient<AuthApiClient>(client => client.BaseAddress = new Uri(apiBaseUrl));
+builder.Services.AddHttpClient<ExerciseApiClient>(client => client.BaseAddress = new Uri(apiBaseUrl));
+builder.Services.AddHttpClient<WorkoutExerciseApiClient>(client => client.BaseAddress = new Uri(apiBaseUrl));
+builder.Services.AddHttpClient<SessionApiClient>(client => client.BaseAddress = new Uri(apiBaseUrl));
+builder.Services.AddHttpClient<PreferenceApiClient>(client => client.BaseAddress = new Uri(apiBaseUrl));
+builder.Services.AddHttpClient<MetadataApiClient>(client => client.BaseAddress = new Uri(apiBaseUrl));
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
-
-
-//Makes Workouts the default page when navigating to the root URL
 app.MapGet("/", context =>
 {
     context.Response.Redirect("/Workouts");
@@ -31,16 +36,10 @@ app.MapGet("/", context =>
 });
 
 app.UseHttpsRedirection();
-
 app.UseRouting();
-
+app.UseSession();
 app.UseAuthorization();
-
 app.MapStaticAssets();
-
-
-app.MapRazorPages()
-   .WithStaticAssets();
+app.MapRazorPages().WithStaticAssets();
 
 app.Run();
-

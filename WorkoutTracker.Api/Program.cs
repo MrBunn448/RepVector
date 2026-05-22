@@ -1,27 +1,46 @@
 using WorkoutTracker.DAL;
+using WorkoutTracker.DAL.Repositories;
+using WorkoutTracker.Logic.Abstractions.Repositories;
+using WorkoutTracker.Logic.Abstractions.Services;
+using WorkoutTracker.Logic.Infrastructure;
 using WorkoutTracker.Logic.Services;
+using WorkoutTracker.Api.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var environment = builder.Environment.EnvironmentName;
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException(
         "Connection string 'DefaultConnection' not found.");
 
 builder.Services.AddSingleton(new DbConnectionFactory(connectionString));
 
-// Dependecy injection, by initiating the WorkoutRepository with the DbConnectionFactory, it will automatically resolve the dependency when WorkoutRepository is requested.
-// so instead of manually saying new class etc., you can just add the services to the container and let the framework handle the instantiation and dependency resolution.
-// this way you can control the lifetime of the services.
-// With DI you can define:
+// Infrastructure
+builder.Services.AddScoped<UserContext>();
 
-//AddSingleton   → one instance for entire app
-//AddScoped      → one per HTTP request
-//AddTransient   → new every time
-
+// Repositories (SOLID - Abstractions)
 builder.Services.AddScoped<IWorkoutRepository, WorkoutRepository>();
-builder.Services.AddScoped<WorkoutService>(); 
+builder.Services.AddScoped<IExerciseRepository, ExerciseRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IWorkoutSessionRepository, WorkoutSessionRepository>();
+builder.Services.AddScoped<IWorkoutExerciseRepository, WorkoutExerciseRepository>();
+builder.Services.AddScoped<IMuscleGroupRepository, MuscleGroupRepository>();
+builder.Services.AddScoped<IUserPreferencesRepository, UserPreferencesRepository>();
 
-builder.Services.AddControllers();
+// Services (Business Logic)
+builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
+builder.Services.AddScoped<IWorkoutService, WorkoutService>();
+builder.Services.AddScoped<IExerciseService, ExerciseService>();
+builder.Services.AddScoped<IWorkoutSessionService, WorkoutSessionService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IWorkoutExerciseService, WorkoutExerciseService>();
+builder.Services.AddScoped<IPreferenceService, PreferenceService>();
+
+// Register Controllers with UserContextFilter
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<UserContextFilter>();
+});
 
 var app = builder.Build();
 

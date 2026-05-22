@@ -1,47 +1,87 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - WorkoutTracker.UI</title>
-    <script type="importmap"></script>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <title>@ViewData["Title"] - RepVector</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/WorkoutTracker.UI.styles.css" asp-append-version="true" />
+    <style>
+        .navbar-brand { font-weight: 800; letter-spacing: -1px; }
+        .nav-link { font-weight: 500; }
+        .footer { font-size: 0.85rem; }
+        body { min-height: 100vh; display: flex; flex-direction: column; }
+        .content-wrapper { flex: 1 0 auto; }
+        .footer { flex-shrink: 0; }
+    </style>
 </head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">WorkoutTracker.UI</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
-                        </li>
-                    </ul>
+<body class="bg-light">
+    <div class="content-wrapper">
+        <header>
+            <nav class="navbar navbar-expand-sm navbar-dark bg-dark border-bottom shadow-sm mb-3">
+                <div class="container">
+                    <a class="navbar-brand text-primary" asp-page="/Workouts/Index">
+                        <i class="bi  me-1"></i>REPVECTOR
+                    </a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
+                        <span class=s"navbar-toggler-icon"></span>
+                    </button>
+                    <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                        <ul class="navbar-nav flex-grow-1">
+                            @if (Context.Session.GetInt32("UserId") != null)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" asp-page="/Workouts/Index">Workouts</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" asp-page="/Exercises/Index">Exercises</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" asp-page="/User/Index">User Hub</a>
+                                </li>
+                            }
+                        </ul>
+                        <ul class="navbar-nav align-items-center">
+                            @if (Context.Session.GetInt32("UserId") != null)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-white-50" asp-page="/User/Settings">
+                                        <i class="bi bi-gear-fill me-1"></i>Settings
+                                    </a>
+                                </li>
+                                <li class="nav-item ms-2">
+                                    <a class="btn btn-outline-light btn-sm px-3" asp-page="/Auth/Logout">Logout</a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" asp-page="/Auth/Login">Login</a>
+                                </li>
+                                <li class="nav-item ms-2">
+                                    <a class="btn btn-primary btn-sm px-3" asp-page="/Auth/Register">Get Started</a>
+                                </li>
+                            }
+                        </ul>
+                    </div>
                 </div>
-            </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+            </nav>
+        </header>
+        <div class="container">
+            <main role="main" class="pb-3">
+                @RenderBody()
+            </main>
+        </div>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - WorkoutTracker.UI</a>
+    <footer class="border-top footer text-muted bg-white py-4">
+        <div class="container text-center">
+            &copy; 2026 - RepVector Workout Tracking &bull; Built SOLID
         </div>
     </footer>
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)

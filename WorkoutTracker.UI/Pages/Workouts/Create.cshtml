@@ -1,0 +1,172 @@
+@page
+@model WorkoutTracker.UI.Pages.Workouts.CreateModel
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8">
+            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    @Model.ErrorMessage
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @if (Model.IsAdmin)
+            {
+                <h1 class="text-danger">Create Workout Template <span class="badge bg-secondary">Admin</span></h1>
+                <p class="text-muted">Workout templates can be made global to all users or kept as personal templates.</p>
+            }
+            else
+            {
+                <h1>Create New Workout</h1>
+            }
+
+            <form method="post" class="mt-4">
+                <div class="card mb-4 shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <div class="mb-3">
+                            <label for="Workout_Name" class="form-label fw-bold">@(Model.IsAdmin ? "Template Name" : "Workout Name")</label>
+                            <input type="text" class="form-control form-control-lg" id="Workout_Name" asp-for="Workout.Name" 
+                                   placeholder="@(Model.IsAdmin ? "e.g., Full Body Template" : "e.g., Push Day, Leg Day")" required>
+                            <span asp-validation-for="Workout.Name" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="Workout_Description" class="form-label fw-bold">Description (Optional)</label>
+                            <textarea class="form-control" id="Workout_Description" asp-for="Workout.Description" 
+                                      placeholder="What is the goal of this routine?" rows="3"></textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="fw-bold mb-0">Exercises</h5>
+                                <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#addExerciseModal">
+                                    <i class="bi bi-plus-circle me-1"></i> Add Exercise
+                                </button>
+                            </div>
+
+                            <div id="exerciseList">
+                                <!-- Dynamic list of exercises -->
+                            </div>
+                        </div>
+
+                        @if (Model.IsAdmin)
+                        {
+                            <div class="form-check form-switch p-3 bg-light rounded border border-danger">
+                                <input class="form-check-input ms-0 me-2" type="checkbox" id="isPredefined" asp-for="Workout.IsPredefined">
+                                <label class="form-check-label fw-bold text-danger" for="isPredefined">
+                                    Publish as Global Template?
+                                </label>
+                                <div class="form-text">If checked, this template will be visible to <strong>ALL users</strong> in the master list.</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg px-5 fw-bold shadow">
+                        @(Model.IsAdmin ? "Create Template" : "Create Workout")
+                    </button>
+                    <a href="/Workouts" class="btn btn-outline-secondary btn-lg px-4">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Exercise Modal -->
+<div class="modal fade" id="addExerciseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title fw-bold">Add Exercise to Workout</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
+                    @foreach (var ex in Model.AllExercises.OrderBy(e => e.Name))
+                    {
+                        <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3" 
+                                onclick="addExercise('@ex.Id', '@ex.Name')">
+                            <div>
+                                <div class="fw-bold">@ex.Name</div>
+                                <div class="small text-muted">@ex.Type • @(ex.PrimaryMuscleGroup?.Name ?? "Other")</div>
+                            </div>
+                            <i class="bi bi-plus-circle-fill text-success fs-4"></i>
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Generation of the dynamic exercise list -->
+@section Scripts {
+    <script>
+        function addExercise(id, name) {
+            const list = document.getElementById('exerciseList');
+            const index = list.querySelectorAll('.exercise-item').length;
+            
+            const html = `
+                <div class="card mb-3 exercise-item border shadow-sm">
+                    <div class="card-body py-2 px-3">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <input type="hidden" name="Workout.Exercises[${index}].ExerciseId" value="${id}">
+                                <input type="hidden" name="Workout.Exercises[${index}].SortOrder" value="${index}" class="sort-order">
+                                <div class="fw-bold text-primary">${name}</div>
+                            </div>
+                            <div class="col-auto">
+                                <div class="input-group input-group-sm" style="width: 130px;">
+                                    <span class="input-group-text">Sets</span>
+                                    <input type="number" name="Workout.Exercises[${index}].TargetSets" class="form-control" value="3" min="1">
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <div class="input-group input-group-sm" style="width: 130px;">
+                                    <span class="input-group-text">Reps</span>
+                                    <input type="number" name="Workout.Exercises[${index}].TargetReps" class="form-control" value="10" min="1">
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <button type="button" class="btn btn-sm btn-outline-danger border-0 remove-exercise">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const div = document.createElement('div');
+            div.innerHTML = html;
+            list.appendChild(div.firstElementChild);
+            
+            bootstrap.Modal.getInstance(document.getElementById('addExerciseModal')).hide();
+        }
+
+        document.getElementById('exerciseList').addEventListener('click', function(e) {
+            if (e.target.closest('.remove-exercise')) {
+                e.target.closest('.exercise-item').remove();
+                reindexExercises();
+            }
+        });
+
+        function reindexExercises() {
+            const items = document.querySelectorAll('.exercise-item');
+            items.forEach((item, index) => {
+                item.querySelectorAll('input').forEach(input => {
+                    const name = input.getAttribute('name');
+                    if (name) {
+                        input.setAttribute('name', name.replace(/\[\d+\]/, `[${index}]`));
+                    }
+                });
+                const sortInput = item.querySelector('.sort-order');
+                if (sortInput) sortInput.value = index;
+            });
+        }
+    </script>
+}

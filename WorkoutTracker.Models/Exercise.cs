@@ -1,16 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+namespace WorkoutTracker.Models;
 
-namespace WorkoutTracker.Models
+/// <summary>
+/// Represents a physical exercise that can be performed in a workout.
+/// </summary>
+public class Exercise
 {
-    public class Exercise
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public int Reps { get; set; }
-        public int Sets { get; set; }
 
-        public int WorkoutId { get; set; }
-    }
+    public int Id { get; set; }
+
+    public int? UserId { get; set; }
+
+    public string Name { get; set; } = string.Empty;
+
+    public string? Description { get; set; }
+
+    public string Type { get; set; } = "Other"; 
+
+    public int? PrimaryMuscleGroupId { get; set; }
+
+    public bool IsPredefined { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+
+    public MuscleGroup? PrimaryMuscleGroup { get; set; }
 }
