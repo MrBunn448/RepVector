@@ -2,7 +2,7 @@
 
 This document provides a deep dive into the architecture, data flow, and security model of the RepVector workout tracking system.
 
-## 🏗 Architectural Overview
+## Architectural Overview
 
 RepVector is built using a **Strict 4-Layer Architecture** to ensure separation of concerns and maintainability.
 
@@ -31,7 +31,7 @@ RepVector is built using a **Strict 4-Layer Architecture** to ensure separation 
 
 ---
 
-## 🔄 Data Flow: The "Active Session" Lifecycle
+## Data Flow: The "Active Session" Lifecycle
 
 To understand how data moves through the system, consider the flow of logging a set during a workout:
 
@@ -46,7 +46,7 @@ To understand how data moves through the system, consider the flow of logging a 
 
 ---
 
-## 🔐 Accounts & Security Model
+## Accounts & Security Model
 
 ### Authentication & Identification
 RepVector uses a **Filter-Driven Identification** model:
@@ -63,7 +63,7 @@ Two roles exist: `User` and `Admin`.
 
 ---
 
-## 📡 API Endpoint Reference
+## API Endpoint Reference
 
 ### Workout Management (`/api/workouts`)
 | Endpoint | Method | Description |
@@ -90,7 +90,7 @@ Two roles exist: `User` and `Admin`.
 
 ---
 
-## 📦 Shared Models
+## Shared Models
 All layers depend on `WorkoutTracker.Models`. Key entities include:
 *   **Workout**: The template definition.
 *   **Exercise**: A movement definition (e.g., "Bench Press").
