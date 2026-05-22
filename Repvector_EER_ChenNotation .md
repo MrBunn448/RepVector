@@ -1,7 +1,7 @@
 // In Visual Studio Code 1.121.0 and later, you can view this mermaid diagram directly in Visual Studio code. A community extention for viewing was intergrated into visual studio itself.
 
 Enhanced Entity-Relationship (EER) Diagram for the Workout Tracking System using Chen Notation:
-```Mermaid
+```mermaid
 flowchart TD
     %% Entities (Rectangles)
     User[User]
