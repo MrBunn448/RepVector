@@ -1,6 +1,26 @@
 Note: 
 In Visual Studio Code 1.121.0 and later, you can view this mermaid diagram directly in Visual Studio code. A community extention for viewing was intergrated into visual studio itself.
 
+## Design Reasoning (ERD)
+*   **Strong Entities**: `Exercise` and `Workout` are modeled as strong
+     entities (despite having a `user_id` link) because they possess
+     independent Primary Keys (`id`). This supports the "Standalone" use
+     case where Admins create global templates that aren't "owned" by a
+     specific user.
+   *   **PK/FK Dual Role**: In the `USER_PREFERENCES` table, `user_id`
+     serves as both the Primary Key and Foreign Key. This is a deliberate
+     1:1 optimization to prevent a user from ever having duplicate
+     preference records.
+   *   **Nullability (NN vs NULL)**:
+   *   `user_id` is **NULL** in `EXERCISES` to allow for
+     system-predefined movements.
+   *   `workout_id` is **NULL** in `WORKOUT_SESSIONS` to ensure that
+     if a user deletes a template, their historical workout data remains
+     intact (Snapshotting).
+   *   **Associative Table**: `WORKOUT_EXERCISES` acts as the physical
+     bridge for the M:N relationship, storing instance-specific data like
+     `target_sets` and `sort_order`.
+
 
 ```Mermaid
   erDiagram
