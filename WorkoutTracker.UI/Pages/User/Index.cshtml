@@ -1,0 +1,118 @@
+@page
+@model WorkoutTracker.UI.Pages.User.IndexModel
+@{
+    ViewData["Title"] = "User Dashboard";
+}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body text-center py-5">
+                    <div class="mb-3">
+                        <i class="bi bi-person-circle display-1 text-primary"></i>
+                    </div>
+                    <h3 class="fw-bold">@(!string.IsNullOrEmpty(Model.Preferences.Username) ? Model.Preferences.Username : "Athlete")</h3>
+                    <p class="text-muted small">@HttpContext.Session.GetString("UserEmail")</p>
+                    <div class="badge bg-light text-dark border px-3 py-2">
+                        @HttpContext.Session.GetString("UserRole") Account
+                    </div>
+                    <hr class="my-4">
+                    <div class="d-grid">
+                        <a href="/User/Settings" class="btn btn-outline-primary">
+                            <i class="bi bi-gear-fill me-2"></i> Settings & Preferences
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0 bg-dark text-white">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">Quick Stats</h5>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Total Workouts</span>
+                        <span class="fw-bold text-primary">@Model.SessionHistory.Count</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Units</span>
+                        <span class="badge bg-primary">@Model.Preferences.WeightUnit / @Model.Preferences.DistanceUnit</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold mb-0">Workout History</h2>
+                <a href="/Workouts" class="btn btn-primary shadow-sm">
+                    <i class="bi bi-plus-lg me-1"></i> Start New Workout
+                </a>
+            </div>
+
+            @if (!Model.SessionHistory.Any())
+            {
+                <div class="text-center py-5 bg-white rounded shadow-sm border">
+                    <i class="bi bi-journal-x display-4 text-muted mb-3"></i>
+                    <h4 class="text-muted">No history found</h4>
+                    <p>Complete your first workout to see it here!</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var session in Model.SessionHistory)
+                {
+                    <div class="card shadow-sm border-0 mb-3 hover-shadow transition">
+                        <div class="card-body p-4">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <h5 class="fw-bold mb-1">@(session.WorkoutName ?? $"Session #{session.Id}")</h5>
+                                    <div class="text-muted small">
+                                        <i class="bi bi-calendar3 me-1"></i> @session.StartedAt.ToString("MMM dd, yyyy @ HH:mm")
+                                    </div>
+                                </div>
+                                <div class="col-md-3 text-center">
+                                    <div class="fw-bold">
+                                        @{
+                                            var duration = TimeSpan.FromSeconds(session.TotalSeconds);
+                                            var durationStr = $"{(int)duration.TotalMinutes}m {duration.Seconds}s";
+                                        }
+                                        <i class="bi bi-clock me-1 text-primary"></i> @durationStr
+                                    </div>
+                                    <div class="small text-muted">Duration</div>
+                                </div>
+                                <div class="col-md-3 text-end">
+                                    <div class="d-flex flex-column gap-2 align-items-end">
+                                        <span class="badge @(session.Status == "completed" ? "bg-success" : "bg-danger") px-3 py-2">
+                                            @session.Status.ToUpper()
+                                        </span>
+                                        <div class="btn-group btn-group-sm shadow-sm">
+                                            <a href="/User/HistoryDetails/@session.Id" class="btn btn-outline-info">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <form method="post" asp-page-handler="DeleteSession" asp-route-id="@session.Id" 
+                                                  onsubmit="return confirm('Delete this session from history?')">
+                                                <button type="submit" class="btn btn-outline-danger">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-shadow:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1) !important;
+    }
+    .transition {
+        transition: all 0.2s ease-in-out;
+    }
+</style>

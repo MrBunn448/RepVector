@@ -1,0 +1,28 @@
+@page "{id:int}"
+@model WorkoutTracker.UI.Pages.Workouts.DeleteModel
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6">
+            @if (Model.Workout == null)
+            {
+                <div class="alert alert-danger">Workout not found</div>
+            }
+            else
+            {
+                <div class="alert alert-danger" role="alert">
+                    <h4>Delete Workout</h4>
+                    <p>Are you sure you want to delete "<strong>@Model.Workout.Name</strong>"?</p>
+                    <p class="mb-0"><small>This action cannot be undone.</small></p>
+                </div>
+
+                <form method="post">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                        <a href="/Workouts" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            }
+        </div>
+    </div>
+</div>

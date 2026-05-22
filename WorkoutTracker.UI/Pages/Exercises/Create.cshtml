@@ -1,0 +1,73 @@
+@page
+@model WorkoutTracker.UI.Pages.Exercises.CreateModel
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/Exercises">Exercises</a></li>
+                    <li class="breadcrumb-item active">Create</li>
+                </ol>
+            </nav>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-header @(Model.IsAdmin ? "bg-danger" : "bg-primary") text-white py-3">
+                    <h4 class="mb-0 fw-bold">
+                        <i class="bi bi-plus-circle me-2"></i>
+                        @(Model.IsAdmin ? "Create Official Movement" : "Create My Exercise")
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        <div class="row mb-4">
+                            <div class="col-md-12 mb-3">
+                                <label for="Exercise_Name" class="form-label fw-bold">Exercise Name</label>
+                                <input type="text" class="form-control form-control-lg" id="Exercise_Name" asp-for="Exercise.Name" 
+                                       placeholder="e.g., Incline Bench Press" required>
+                                <span asp-validation-for="Exercise.Name" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="Exercise_Type" class="form-label fw-bold">Equipment Type</label>
+                                <select class="form-select" id="Exercise_Type" asp-for="Exercise.Type" asp-items="Model.ExerciseTypes">
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="Exercise_Muscle" class="form-label fw-bold">Primary Muscle Group</label>
+                                <select class="form-select" id="Exercise_Muscle" asp-for="Exercise.PrimaryMuscleGroupId" asp-items="Model.MuscleGroups">
+                                    <option value="">-- Uncategorized --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="Exercise_Description" class="form-label fw-bold">Instructions & Form Tips</label>
+                            <textarea class="form-control" id="Exercise_Description" asp-for="Exercise.Description" 
+                                      placeholder="Explain how to perform the movement safely..." rows="4"></textarea>
+                        </div>
+
+                        @if (Model.IsAdmin)
+                        {
+                            <div class="form-check form-switch p-3 bg-light rounded border border-danger mb-4">
+                                <input class="form-check-input ms-0 me-2" type="checkbox" id="isPredefined" asp-for="Exercise.IsPredefined" checked>
+                                <label class="form-check-label fw-bold text-danger" for="isPredefined">
+                                    Publish to Global Library
+                                </label>
+                                <div class="form-text">Visible to all users. Only admins can edit or delete this.</div>
+                            </div>
+                        }
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg px-5 fw-bold">
+                                Save Exercise
+                            </button>
+                            <a href="/Exercises" class="btn btn-outline-secondary btn-lg px-4">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

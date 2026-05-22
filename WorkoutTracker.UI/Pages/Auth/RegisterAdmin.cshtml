@@ -1,0 +1,60 @@
+@page
+@model RegisterAdminModel
+@{
+    ViewData["Title"] = "Register Admin";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="card-title mb-0">Admin Registration</h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Enter your details and the administrative secret key to create an admin account.</p>
+
+                    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                    {
+                        <div class="alert alert-danger">@Model.ErrorMessage</div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+                    {
+                        <div class="alert alert-success">@Model.SuccessMessage</div>
+                    }
+
+                    <form method="post">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Admin Email</label>
+                            <input type="email" class="form-control" id="email" asp-for="Email" required placeholder="admin@repvector.com" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" asp-for="Password" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label">Confirm Password</label>
+                            <input type="password" class="form-control" id="confirmPassword" asp-for="ConfirmPassword" required />
+                        </div>
+
+                        <hr />
+
+                        <div class="mb-3">
+                            <label for="adminSecret" class="form-label text-danger fw-bold">Admin Secret Key</label>
+                            <input type="password" class="form-control border-danger" id="adminSecret" asp-for="AdminSecret" required placeholder="Enter the system secret" />
+                            <div class="form-text">This key is required to authorize administrative privileges.</div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger">Register Admin</button>
+                            <a href="/auth/login" class="btn btn-outline-secondary">Back to Login</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

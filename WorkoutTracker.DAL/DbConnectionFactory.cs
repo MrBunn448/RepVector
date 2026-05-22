@@ -2,6 +2,7 @@
 
 namespace WorkoutTracker.DAL;
 
+/// A factory for creating MySQL database connections.
 public class DbConnectionFactory
 {
     private readonly string _connectionString;
@@ -11,7 +12,7 @@ public class DbConnectionFactory
         _connectionString = connectionString;
     }
 
-    public MySqlConnection Create()
+    public MySqlConnection CreateConnection()
     {
         return new MySqlConnection(_connectionString);
     }

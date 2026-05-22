@@ -1,0 +1,393 @@
+@page
+@model WorkoutTracker.UI.Pages.Workouts.ActiveModel
+@{
+    ViewData["Title"] = "Active Session";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-sm border-0 mb-4 bg-dark text-white">
+        <div class="card-body py-4 d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="display-6 fw-bold mb-0">@Model.Workout?.Name</h1>
+                <div class="text-primary small fw-bold text-uppercase">Active Session #@Model.Session?.Id</div>
+            </div>
+            <div class="text-end">
+                <div class="display-5 fw-mono" id="timer">00:00:00</div>
+                <div class="small text-muted text-uppercase">Total Time</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="activeExercises">
+        @foreach (var we in Model.Workout?.Exercises ?? new())
+        {
+            <div class="card shadow-sm border-0 mb-4 exercise-card" data-exercise-id="@we.ExerciseId">
+                <div class="card-header bg-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0">@we.Exercise?.Name</h5>
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="badge bg-light text-primary border">Target: @we.TargetSets x @we.TargetReps</span>
+                            <button class="btn btn-sm btn-outline-danger border-0" onclick="removeExercise(this)">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                            <tr>
+                                <th class="ps-3" style="width: 60px;"></th>
+                                <th style="width: 100px;">Set</th>
+                                <th>Type</th>
+                                <th style="width: 120px;">@Model.Preferences.WeightUnit</th>
+                                <th style="width: 100px;">Reps</th>
+                                <th style="width: 100px;">RPE</th>
+                                <th class="text-end pe-4" style="width: 100px;">Log</th>
+                            </tr>
+                        </thead>
+                        <tbody class="sets-body">
+                            <tr class="set-row" data-set-num="1">
+                                <td class="ps-3">
+                                    <button class="btn btn-sm btn-outline-danger border-0 remove-set-btn" onclick="removeSet(this)" title="Remove Set">
+                                        <i class="bi bi-dash-circle"></i>
+                                    </button>
+                                </td>
+                                <td class="fw-bold">1</td>
+                                <td>
+                                    <select class="form-select form-select-sm set-type">
+                                        <option value="Normal">Normal</option>
+                                        <option value="Warm-up">Warm-up</option>
+                                        <option value="Failure">Failure</option>
+                                        <option value="Drop set">Drop set</option>
+                                    </select>
+                                </td>
+                                <td><input type="number" class="form-control form-control-sm weight" step="0.5" value="0"></td>
+                                <td><input type="number" class="form-control form-control-sm reps" value="@we.TargetReps"></td>
+                                <td><input type="number" class="form-control form-control-sm rpe" min="1" max="10" placeholder="1-10"></td>
+                                <td class="text-end pe-4">
+                                    <button class="btn btn-sm btn-outline-primary log-btn" onclick="logSet(this)">
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="p-3 bg-light text-center">
+                    <button class="btn btn-sm btn-link text-decoration-none" onclick="addSetRow(this)">
+                        <i class="bi bi-plus-circle me-1"></i> Add Set
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="text-center mb-5">
+    <button class="btn btn-outline-success btn-lg px-5 shadow-sm" data-bs-toggle="modal" data-bs-target="#addExerciseModal">
+        <i class="bi bi-plus-lg me-2"></i> Add Another Exercise
+    </button>
+</div>
+
+<div class="card shadow-sm border-0 mb-5">
+    <div class="card-body p-4">
+        <form method="post" asp-page-handler="Finish" id="finishForm" onsubmit="prepareFinish(event)">
+            <input type="hidden" name="totalSeconds" id="totalSecondsInput">
+            <div id="updatedExercisesInputs"></div>
+            
+            @if (Model.Workout?.IsPredefined == false || HttpContext.Session.GetString("UserRole") == "Admin")
+            {
+                <div class="form-check form-switch mb-4 p-3 bg-light rounded border">
+                    <input class="form-check-input ms-0 me-2" type="checkbox" id="updateTemplate" name="updateTemplate" value="true">
+                    <label class="form-check-label fw-bold" for="updateTemplate">
+                        Update original workout template with these changes?
+                    </label>
+                    <div class="form-text">If checked, exercises you added/removed will be saved to the "@Model.Workout?.Name" template.</div>
+                </div>
+            }
+
+            <div class="d-flex gap-3">
+                <button type="submit" class="btn btn-success btn-lg flex-grow-1 fw-bold py-3 shadow">
+                    <i class="bi bi-check2-all me-2"></i> Finish & Save Workout
+                </button>
+                <a href="javascript:void(0)" onclick="confirmCancel()" class="btn btn-outline-danger btn-lg py-3 px-4">
+                    <i class="bi bi-x-circle"></i>
+                </a>
+            </div>
+        </form>
+        <form id="cancelForm" method="post" asp-page-handler="Cancel" style="display:none;"></form>
+    </div>
+</div>
+</div>
+
+<!-- Add Exercise Modal -->
+<div class="modal fade" id="addExerciseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title fw-bold">Add to Session</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <ul class="nav nav-tabs nav-fill" id="addTabs" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active fw-bold" id="ex-tab" data-bs-toggle="tab" data-bs-target="#ex-pane" type="button">Exercises</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link fw-bold" id="wk-tab" data-bs-toggle="tab" data-bs-target="#wk-pane" type="button">Workouts</button>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="ex-pane" role="tabpanel">
+                        <div class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
+                            @foreach (var ex in Model.AllExercises.OrderBy(e => e.Name))
+                            {
+                                <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3" 
+                                        onclick="addActiveExercise('@ex.Id', '@ex.Name')">
+                                    <div>
+                                        <div class="fw-bold">@ex.Name</div>
+                                        <div class="small text-muted">@ex.Type • @(ex.PrimaryMuscleGroup?.Name ?? "Other")</div>
+                                    </div>
+                                    <i class="bi bi-plus-circle-fill text-success fs-4"></i>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="wk-pane" role="tabpanel">
+                        <div class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
+                            @foreach (var wk in Model.AllWorkouts.OrderBy(w => w.Name))
+                            {
+                                <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3" 
+                                        onclick="addExercisesFromWorkout('@wk.Id')">
+                                    <div>
+                                        <div class="fw-bold">@wk.Name</div>
+                                        <div class="small text-muted">Add all exercises from this template</div>
+                                    </div>
+                                    <i class="bi bi-plus-square-fill text-primary fs-4"></i>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let startTime = new Date('@Model.Session?.StartedAt.ToString("yyyy-MM-ddTHH:mm:ss")Z');
+        let totalSeconds = 0;
+
+        function updateTimer() {
+            const now = new Date();
+            const diff = Math.floor((now - startTime) / 1000);
+            totalSeconds = diff > 0 ? diff : 0;
+            
+            const hrs = Math.floor(totalSeconds / 3600);
+            const mins = Math.floor((totalSeconds % 3600) / 60);
+            const secs = totalSeconds % 60;
+            
+            document.getElementById('timer').innerText = 
+                `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        setInterval(updateTimer, 1000);
+
+        function removeSet(btn) {
+            const body = btn.closest('.sets-body');
+            if (body.querySelectorAll('tr').length > 1) {
+                btn.closest('tr').remove();
+                // Re-index sets
+                body.querySelectorAll('tr').forEach((row, i) => {
+                    row.dataset.setNum = i + 1;
+                    row.querySelector('td:nth-child(2)').innerText = i + 1;
+                });
+            }
+        }
+
+        function removeExercise(btn) {
+            if (confirm('Remove this exercise from current session?')) {
+                btn.closest('.exercise-card').remove();
+            }
+        }
+
+        async function addExercisesFromWorkout(workoutId) {
+            const response = await fetch(`?handler=WorkoutDetails&id=${workoutId}`);
+            if (response.ok) {
+                const exercises = await response.json();
+                exercises.forEach(ex => {
+                    addActiveExercise(ex.exerciseId, ex.exerciseName, ex.targetSets, ex.targetReps);
+                });
+            }
+            bootstrap.Modal.getInstance(document.getElementById('addExerciseModal')).hide();
+        }
+
+        function addActiveExercise(id, name, targetSets = 1, targetReps = 10) {
+            const container = document.getElementById('activeExercises');
+            
+            // Generate rows based on targetSets
+            let setRowsHtml = '';
+            for (let i = 1; i <= targetSets; i++) {
+                setRowsHtml += `
+                    <tr class="set-row" data-set-num="${i}">
+                        <td class="ps-3">
+                            <button class="btn btn-sm btn-outline-danger border-0 remove-set-btn" onclick="removeSet(this)" title="Remove Set">
+                                <i class="bi bi-dash-circle"></i>
+                            </button>
+                        </td>
+                        <td class="fw-bold">${i}</td>
+                        <td>
+                            <select class="form-select form-select-sm set-type">
+                                <option value="Normal">Normal</option>
+                                <option value="Warm-up">Warm-up</option>
+                                <option value="Failure">Failure</option>
+                                <option value="Drop set">Drop set</option>
+                            </select>
+                        </td>
+                        <td><input type="number" class="form-control form-control-sm weight" step="0.5" value="0"></td>
+                        <td><input type="number" class="form-control form-control-sm reps" value="${targetReps}"></td>
+                        <td><input type="number" class="form-control form-control-sm rpe" min="1" max="10" placeholder="1-10"></td>
+                        <td class="text-end pe-4">
+                            <button class="btn btn-sm btn-outline-primary log-btn" onclick="logSet(this)">
+                                <i class="bi bi-check-lg"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }
+
+            const html = `
+                <div class="card shadow-sm border-0 mb-4 exercise-card" data-exercise-id="${id}">
+                    <div class="card-header bg-white py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="fw-bold mb-0">${name}</h5>
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="badge bg-light text-primary border">Added Movement</span>
+                                <button class="btn btn-sm btn-outline-danger border-0" onclick="removeExercise(this)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-3" style="width: 60px;"></th>
+                                        <th style="width: 100px;">Set</th>
+                                        <th>Type</th>
+                                        <th style="width: 120px;">@Model.Preferences.WeightUnit</th>
+                                        <th style="width: 100px;">Reps</th>
+                                        <th style="width: 100px;">RPE</th>
+                                        <th class="text-end pe-4" style="width: 100px;">Log</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="sets-body">
+                                    ${setRowsHtml}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="p-3 bg-light text-center">
+                            <button class="btn btn-sm btn-link text-decoration-none" onclick="addSetRow(this)">
+                                <i class="bi bi-plus-circle me-1"></i> Add Set
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            const div = document.createElement('div');
+            div.innerHTML = html;
+            container.appendChild(div.firstElementChild);
+            bootstrap.Modal.getInstance(document.getElementById('addExerciseModal')).hide();
+        }
+
+        function prepareFinish(e) {
+            const allSets = document.querySelectorAll('.log-btn');
+            const unloggedSets = Array.from(allSets).filter(btn => !btn.classList.contains('btn-success'));
+            
+            if (unloggedSets.length > 0) {
+                if (!confirm(`You did not log every set in this workout. Still want to save and exit?`)) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+
+            document.getElementById('totalSecondsInput').value = totalSeconds;
+            
+            const container = document.getElementById('updatedExercisesInputs');
+            container.innerHTML = '';
+            
+            const exercises = document.querySelectorAll('.exercise-card');
+            exercises.forEach((ex, i) => {
+                const id = ex.dataset.exerciseId;
+                const sets = ex.querySelectorAll('.set-row').length;
+                // Target reps from first row
+                const reps = ex.querySelector('.reps').value;
+
+                container.innerHTML += `<input type="hidden" name="updatedExercises[${i}].ExerciseId" value="${id}">`;
+                container.innerHTML += `<input type="hidden" name="updatedExercises[${i}].TargetSets" value="${sets}">`;
+                container.innerHTML += `<input type="hidden" name="updatedExercises[${i}].TargetReps" value="${reps}">`;
+                container.innerHTML += `<input type="hidden" name="updatedExercises[${i}].SortOrder" value="${i}">`;
+            });
+        }
+
+        function confirmCancel() {
+            if (confirm('Are you sure you want to cancel this workout? Data will be lost.')) {
+                document.getElementById('cancelForm').submit();
+            }
+        }
+
+        function addSetRow(btn) {
+            const body = btn.closest('.card').querySelector('.sets-body');
+            const lastRow = body.querySelector('tr:last-child');
+            const nextNum = parseInt(lastRow.dataset.setNum) + 1;
+            
+            const newRow = lastRow.cloneNode(true);
+            newRow.dataset.setNum = nextNum;
+            newRow.querySelector('td:nth-child(2)').innerText = nextNum;
+            newRow.querySelector('.log-btn').classList.remove('btn-success');
+            newRow.querySelector('.log-btn').classList.add('btn-outline-primary');
+            newRow.querySelector('.log-btn').disabled = false;
+            
+            body.appendChild(newRow);
+        }
+
+        async function logSet(btn) {
+            const row = btn.closest('tr');
+            const exerciseId = btn.closest('.exercise-card').dataset.exerciseId;
+            const weight = row.querySelector('.weight').value;
+            const reps = row.querySelector('.reps').value;
+            const rpe = row.querySelector('.rpe').value;
+            const setType = row.querySelector('.set-type').value;
+            const setNum = row.dataset.setNum;
+
+            const formData = new FormData();
+            formData.append('exerciseId', exerciseId);
+            formData.append('weight', weight);
+            formData.append('reps', reps);
+            if (rpe) formData.append('rpe', rpe);
+            formData.append('setType', setType);
+            formData.append('setNumber', setNum);
+
+            const response = await fetch('?handler=LogSet', {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value },
+                body: formData
+            });
+
+            if (response.ok) {
+                btn.classList.remove('btn-outline-primary');
+                btn.classList.add('btn-success');
+                btn.disabled = true;
+            }
+        }
+    </script>
+}
+
+<style>
+    .fw-mono { font-family: 'Courier New', Courier, monospace; }
+</style>

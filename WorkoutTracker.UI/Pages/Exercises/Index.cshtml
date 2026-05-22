@@ -1,0 +1,139 @@
+@page
+@model WorkoutTracker.UI.Pages.Exercises.IndexModel
+
+@{
+    bool isAdmin = HttpContext.Session.GetString("UserRole") == "Admin";
+}
+
+<div class="container mt-5">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-8">
+            <h1 class="display-4 fw-bold">Exercise Library</h1>
+            <p class="lead text-muted">Browse official RepVector movements or manage your custom exercises.</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="/Exercises/Create" class="btn btn-primary btn-lg shadow-sm">
+                <i class="bi bi-plus-circle me-2"></i>
+                Create Exercise
+            </a>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-pills mb-4" id="exerciseTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold" id="official-tab" data-bs-toggle="pill" data-bs-target="#official" type="button" role="tab">
+                RepVector Official <span class="badge bg-danger ms-1">@Model.RepVectorExercises.Count</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="personal-tab" data-bs-toggle="pill" data-bs-target="#personal" type="button" role="tab">
+                My Exercises <span class="badge bg-secondary ms-1">@Model.PersonalExercises.Count</span>
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="exerciseTabsContent">
+        <!-- Official Exercises Tab -->
+        <div class="tab-pane fade show active" id="official" role="tabpanel">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle border-0 shadow-sm rounded overflow-hidden">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="ps-4 py-3">Exercise</th>
+                            <th>Muscle Group</th>
+                            <th>Type</th>
+                            @if (isAdmin)
+                            {
+                                <th class="text-end pe-4">Admin</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white">
+                        @foreach (var exercise in Model.RepVectorExercises)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="fw-bold text-primary">@exercise.Name</div>
+                                    <div class="small text-muted">@exercise.Description</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">
+                                        @(exercise.PrimaryMuscleGroup?.Name ?? "Other")
+                                    </span>
+                                </td>
+                                <td><small class="text-muted">@exercise.Type</small></td>
+                                @if (isAdmin)
+                                {
+                                    <td class="text-end pe-4">
+                                        <a href="/Exercises/Edit/@exercise.Id" class="btn btn-sm btn-outline-warning border-0"><i class="bi bi-pencil-fill"></i></a>
+                                        <a href="/Exercises/Delete/@exercise.Id" class="btn btn-sm btn-outline-danger border-0"><i class="bi bi-trash-fill"></i></a>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Personal Exercises Tab -->
+        <div class="tab-pane fade" id="personal" role="tabpanel">
+            @if (Model.PersonalExercises.Count == 0)
+            {
+                <div class="text-center py-5 bg-white rounded shadow-sm border">
+                    <i class="bi bi-folder2-open display-4 text-muted mb-3"></i>
+                    <h4 class="text-muted">No custom exercises yet</h4>
+                    <p>Create your own movements to track them in your workouts.</p>
+                    <a href="/Exercises/Create" class="btn btn-outline-primary mt-2">Create Custom Exercise</a>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle shadow-sm rounded overflow-hidden">
+                        <thead class="table-secondary">
+                            <tr>
+                                <th class="ps-4">Exercise</th>
+                                <th>Muscle Group</th>
+                                <th>Type</th>
+                                <th class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white">
+                            @foreach (var exercise in Model.PersonalExercises)
+                            {
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="fw-bold">@exercise.Name</div>
+                                        <div class="small text-muted">@exercise.Description</div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border">
+                                            @(exercise.PrimaryMuscleGroup?.Name ?? "Other")
+                                        </span>
+                                    </td>
+                                    <td><small class="text-muted">@exercise.Type</small></td>
+                                    <td class="text-end pe-4">
+                                        <a href="/Exercises/Edit/@exercise.Id" class="btn btn-sm btn-outline-warning border-0"><i class="bi bi-pencil-fill"></i></a>
+                                        <a href="/Exercises/Delete/@exercise.Id" class="btn btn-sm btn-outline-danger border-0"><i class="bi bi-trash-fill"></i></a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .nav-pills .nav-link.active {
+        background-color: #0d6efd;
+    }
+    .nav-pills .nav-link {
+        color: #6c757d;
+        border-radius: 0.5rem;
+    }
+</style>

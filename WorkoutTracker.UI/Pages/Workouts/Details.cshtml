@@ -1,34 +1,131 @@
-﻿@page "{id:int}"
+@page "{id:int}"
 @model WorkoutTracker.UI.Pages.Workouts.DetailsModel
 
-<h1>@Model.Workout?.Name</h1>
-<p>@Model.Workout?.Description</p>
+@{
+    var userId = HttpContext.Session.GetInt32("UserId");
+    bool isAdmin = HttpContext.Session.GetString("UserRole") == "Admin";
+    bool canEdit = isAdmin || (Model.Workout?.UserId == userId);
+}
 
-<h2>Exercises</h2>
+<div class="container mt-5">
+    @if (!string.IsNullOrEmpty(Model.ConflictError))
+    {
+        <div class="alert alert-warning shadow-sm border-warning d-flex align-items-center mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+            <div class="flex-grow-1">
+                <h5 class="alert-heading fw-bold mb-1">Ongoing Workout Detected</h5>
+                <p class="mb-0">You already have an active workout session. Starting a new one will cancel the current session. What would you like to do?</p>
+            </div>
+            <div class="ms-3 d-flex gap-2">
+                <form method="post" asp-page-handler="StartSession" asp-route-id="@Model.Workout?.Id" asp-route-force="true">
+                    <button type="submit" class="btn btn-warning fw-bold">Cancel Old & Start New</button>
+                </form>
+                <a href="/Workouts/Active" class="btn btn-outline-dark">Resume Active</a>
+            </div>
+        </div>
+    }
 
-@if (Model.Workout?.Exercises.Any() == true)
-{
-    <table>
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Sets</th>
-                <th>Reps</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var exercise in Model.Workout.Exercises)
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/Workouts">Workouts</a></li>
+                    <li class="breadcrumb-item active">@Model.Workout?.Name</li>
+                </ol>
+            </nav>
+            <h1 class="display-5 fw-bold">
+                @Model.Workout?.Name
+                @if (Model.Workout?.IsPredefined == true)
+                {
+                    <span class="badge bg-danger ms-2" style="font-size: 0.4em; vertical-align: middle;">Global Template</span>
+                }
+            </h1>
+            <p class="text-muted">
+                <i class="bi bi-calendar3 me-1"></i> Created on @Model.Workout?.CreatedAt.ToString("MMM dd, yyyy")
+            </p>
+        </div>
+        <div class="col-md-4 text-end">
+            <form method="post" asp-page-handler="StartSession" asp-route-id="@Model.Workout?.Id" class="d-inline">
+                <button type="submit" class="btn btn-success btn-lg shadow-sm px-4">
+                    <i class="bi bi-play-fill me-1"></i> Start Workout
+                </button>
+            </form>
+            @if (canEdit)
             {
-                <tr>
-                    <td>@exercise.Name</td>
-                    <td>@exercise.Sets</td>
-                    <td>@exercise.Reps</td>
-                </tr>
+                <a href="/Workouts/Edit/@Model.Workout?.Id" class="btn btn-outline-warning shadow-sm ms-2">
+                    <i class="bi bi-pencil-square"></i>
+                </a>
             }
-        </tbody>
-    </table>
-}
-else
-{
-    <p>No exercises found.</p>
-}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3">
+                    <h5 class="mb-0 fw-bold">Exercises in Routine</h5>
+                    <span class="badge bg-primary">@Model.Exercises.Count Movement(s)</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">Exercise Name</th>
+                                    <th>Target Sets</th>
+                                    <th>Target Reps</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (!Model.Exercises.Any())
+                                {
+                                    <tr>
+                                        <td colspan="3" class="text-center py-5 text-muted">
+                                            <i class="bi bi-info-circle display-6 d-block mb-3"></i>
+                                            No exercises added to this routine yet.
+                                        </td>
+                                    </tr>
+                                }
+                                else
+                                {
+                                    @foreach (var we in Model.Exercises)
+                                    {
+                                        <tr>
+                                            <td class="ps-4">
+                                                <div class="fw-bold">@we.Exercise?.Name</div>
+                                                <div class="small text-muted">
+                                                    @if (we.Exercise?.IsPredefined == true)
+                                                    {
+                                                        <span class="text-danger fw-bold"><i class="bi bi-patch-check"></i> RepVector Official</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span><i class="bi bi-person"></i> Personal</span>
+                                                    }
+                                                </div>
+                                            </td>
+                                            <td><span class="badge bg-secondary">@we.TargetSets Sets</span></td>
+                                            <td><span class="badge bg-outline-secondary text-dark border">@we.TargetReps Reps</span></td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            @if (canEdit == false || Model.Workout?.IsPredefined == true)
+            {
+                <div class="card shadow-sm border-0 bg-light border-start border-primary border-4">
+                    <div class="card-body">
+                        <h5 class="fw-bold"><i class="bi bi-info-circle-fill text-primary me-2"></i>Global Template</h5>
+                        <p class="mb-0 small text-muted">You are viewing a global template. These routines are curated by admins and cannot be modified. Start a session above to log your progress!</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

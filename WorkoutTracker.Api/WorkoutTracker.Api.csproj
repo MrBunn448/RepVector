@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\WorkoutTracker.DAL\WorkoutTracker.DAL.csproj" />
     <ProjectReference Include="..\WorkoutTracker.Logic\WorkoutTracker.Logic.csproj" />
   </ItemGroup>
 
