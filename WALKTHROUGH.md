@@ -1,10 +1,10 @@
-# RepVector: System Walkthrough
+# RepVector: General System Walkthrough
 
 This document provides a step-by-step walkthrough of how the RepVector system operates, tracing the flow of data across its architectural layers and explaining the responsibilities of each component.
 
 ## 1. The Architectural Layers
 
-RepVector uses a strictly decoupled four-layer architecture. To understand the flow, we must first define the players:
+RepVector uses a strictly decoupled four-layer architecture. To understand the flow, we must first define the layers:
 
 *   **WorkoutTracker.UI (Presentation)**: The Razor Pages frontend. It captures user intent and displays data.
 *   **WorkoutTracker.Api (Service)**: The REST API entry point. It manages routing and initial request handling.
@@ -13,7 +13,7 @@ RepVector uses a strictly decoupled four-layer architecture. To understand the f
 
 ---
 
-## 2. A Typical Flow: Starting a Workout
+## 2. Typical Flow: Starting a Workout
 
 Let's trace what happens when a user navigates to a workout and clicks **"Start Workout"**.
 
@@ -68,4 +68,5 @@ By walking through this flow, several benefits become clear:
 
 *   **Interchangeable UI**: Because the logic is in the `WorkoutTracker.Logic` project and exposed via the `WorkoutTracker.Api`, we could delete the Razor Pages project and replace it with a Mobile App tomorrow without changing a single line of database or business logic.
 *   **Testability**: We can test the Logic layer in isolation by "faking" the DAL, ensuring our workout rules are perfect without ever needing a real database.
-*   **Performance**: Because the DAL uses raw SQL, there is no hidden overhead. The "Walkthrough" from UI to Database happens in milliseconds.
+*   **Performance**: Because the DAL uses raw SQL, there is no hidden overhead. The "Walkthrough" from UI to Database happens in milliseconds.   
+(Also because Raw SQL was a required part of the assignment)
