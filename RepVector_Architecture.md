@@ -32,8 +32,8 @@ graph TD
     Logic --> Models
 
     %% Formatting
-    style Logic fill:#dfd,stroke:#333,stroke-width:2px
-    style Models fill:#eee,stroke:#333,stroke-dasharray: 5 5
+    style Logic fill:#bfb,stroke:#333,stroke-width:2px
+    style Models fill:#eer,stroke:#333,stroke-dasharray: 5 5
 ```
 
 ### Logical Layering & Data Flow (Runtime)
@@ -118,3 +118,31 @@ sequenceDiagram
 | **DAL** | `WorkoutTracker.DAL\Repositories\WorkoutRepository.cs` | Executes raw SQL to persist workout metadata. | `DbConnectionFactory`, `IWorkoutRepository` |
 | **DAL** | `WorkoutTracker.DAL\Repositories\WorkoutExerciseRepository.cs` | Executes raw SQL to persist exercises linked to the workout. | `DbConnectionFactory`, `IWorkoutExerciseRepository` |
 | **Models** | `WorkoutTracker.Models\Workout.cs` | Defines the structure of a Workout template. | - |
+
+---
+
+## The "Why" Behind the Architecture
+
+Understanding the distinction between **Compile-time** (Source Code) and **Runtime** (Execution) dependencies is key to maintaining the RepVector codebase.
+
+### 1. Compile-time (The "Blind" Principle)
+At the source code level, the **Logic Layer is the Core**.
+*   **Logic does not know about DAL**: The `WorkoutTracker.Logic` project has no reference to `WorkoutTracker.DAL`. It defines **Interfaces** (contracts) like `IWorkoutRepository`.
+*   **DAL is a Plugin**: `WorkoutTracker.DAL` references `Logic` to implement those interfaces.
+*   **Safety**: This prevents "leaking" database-specific code (like SQL) into the business logic. If you try to write a SQL query in the Logic layer, the code will not compile.
+
+### 2. Runtime (The "Dependency Injection" Glue)
+When the application is running, the **API Layer** acts as the glue.
+*   **Startup Configuration**: In `Program.cs`, the DI container is configured to map interfaces to implementations:
+    `builder.Services.AddScoped<IWorkoutRepository, WorkoutRepository>();`
+*   **Dynamic Injection**: When a user makes a request, the API creates the `WorkoutService`. Because the service asks for an `IWorkoutRepository` in its constructor, the DI container automatically "injects" the `WorkoutRepository` from the DAL.
+*   **Outcome**: The Logic layer executes database code at runtime without ever having a hard-coded reference to the DAL project at compile-time.
+
+### 3. Benefits of this Design
+
+*   **Testability**: We can write Unit Tests for the Logic layer by "mocking" the interfaces. We can test business rules (e.g., "only admins can create templates") in milliseconds without needing a real database.
+*   **Maintainability (Swappability)**: If we decided to switch from MySQL to another database, we would only need to create a new DAL implementation and change one line in `Program.cs`. The UI, API, and Logic layers would remain untouched.
+*   **Protection of Business Value**: Business rules are the most important part of the app. By isolating them in a "Pure" Logic layer, we protect them from being broken by changes in external "Tools" (like database updates or API framework changes).
+
+**In summary: The "Rules" (Logic) control the "Tools" (DAL/UI), not the other way around.**
+
