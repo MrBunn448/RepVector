@@ -1,15 +1,17 @@
 using System.Net;
 using System.Net.Http.Json;
-using Moq;
+using Microsoft.Extensions.DependencyInjection;
+using WorkoutTracker.Logic.Abstractions.Repositories;
 using WorkoutTracker.Models;
 using Xunit;
 
 namespace WorkoutTracker.IntegrationTests;
 
-public class WorkoutApiTests : IClassFixture<WorkoutTrackerWebApplicationFactory>
+public class WorkoutApiTests : IClassFixture<WorkoutTrackerWebApplicationFactory>, IAsyncLifetime
 {
     private readonly WorkoutTrackerWebApplicationFactory _factory;
     private readonly HttpClient _client;
+    private readonly List<int> _testUserIds = new();
 
     public WorkoutApiTests(WorkoutTrackerWebApplicationFactory factory)
     {
@@ -17,25 +19,38 @@ public class WorkoutApiTests : IClassFixture<WorkoutTrackerWebApplicationFactory
         _client = factory.CreateClient();
     }
 
+    public Task InitializeAsync() => Task.CompletedTask;
+
+    public async Task DisposeAsync()
+    {
+        // Cleanup: Delete all users created during tests. 
+        using var scope = _factory.Services.CreateScope();
+        var userRepo = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+        var workoutRepo = scope.ServiceProvider.GetRequiredService<IWorkoutRepository>();
+
+        foreach (var userId in _testUserIds)
+        {
+            // Delete workouts first to satisfy foreign key constraints for workout_exercises
+            var workouts = await workoutRepo.GetAllByUserIdAsync(userId);
+            foreach (var workout in workouts.Where(w => w.UserId == userId))
+            {
+                await workoutRepo.DeleteAsync(workout.Id);
+            }
+            await userRepo.DeleteAsync(userId);
+        }
+    }
+
     [Fact]
     public async Task GetWorkouts_ReturnsOk_WithWorkouts()
     {
-        // Arrange
-        var userId = 1;
-        var mockUser = new User { Id = userId, Role = "User" };
-        _factory.UserRepositoryMock
-            .Setup(repo => repo.GetByIdAsync(userId))
-            .ReturnsAsync(mockUser);
+        // --- PHASE 1: PREPARATION (Dynamic User) ---
+        var userId = await CreateTestUserAndLogin();
 
-        var mockWorkouts = new List<Workout>
-        {
-            new Workout { Id = 1, Name = "Test Workout", UserId = userId }
-        };
-        _factory.WorkoutRepositoryMock
-            .Setup(repo => repo.GetAllByUserIdAsync(userId))
-            .ReturnsAsync(mockWorkouts);
+        // --- PHASE 2: DATA SETUP (Dynamic Workout) ---
+        var workoutName = $"API Test Workout {Guid.NewGuid()}";
+        await CreateTestWorkout(userId, workoutName);
 
-        // Act
+        // --- PHASE 3: THE ACTUAL TEST ---
         var request = new HttpRequestMessage(HttpMethod.Get, "/api/workouts");
         request.Headers.Add("X-User-Id", userId.ToString());
         var response = await _client.SendAsync(request);
@@ -44,24 +59,15 @@ public class WorkoutApiTests : IClassFixture<WorkoutTrackerWebApplicationFactory
         response.EnsureSuccessStatusCode();
         var workouts = await response.Content.ReadFromJsonAsync<List<Workout>>();
         Assert.NotNull(workouts);
-        Assert.Single(workouts);
-        Assert.Equal("Test Workout", workouts[0].Name);
+        Assert.Contains(workouts, w => w.Name == workoutName);
     }
 
     [Fact]
     public async Task GetWorkoutById_ReturnsNotFound_WhenWorkoutDoesNotExist()
     {
-        // Arrange
-        var userId = 1;
-        var workoutId = 999;
-        var mockUser = new User { Id = userId, Role = "User" };
-        _factory.UserRepositoryMock
-            .Setup(repo => repo.GetByIdAsync(userId))
-            .ReturnsAsync(mockUser);
-
-        _factory.WorkoutRepositoryMock
-            .Setup(repo => repo.GetByIdAsync(workoutId))
-            .ReturnsAsync((Workout?)null);
+        // Arrange - Use a real user but an ID that is guaranteed not to exist (like a random negative number or very high)
+        var userId = await CreateTestUserAndLogin();
+        var workoutId = 999999; 
 
         // Act
         var request = new HttpRequestMessage(HttpMethod.Get, $"/api/workouts/{workoutId}");
@@ -70,5 +76,46 @@ public class WorkoutApiTests : IClassFixture<WorkoutTrackerWebApplicationFactory
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    // --- HELPER METHODS FOR DYNAMIC FLOW ---
+
+    private async Task<int> CreateTestUserAndLogin()
+    {
+        var email = $"user_{Guid.NewGuid()}@example.com";
+        var password = "Password123!";
+
+        // Register
+        await _client.PostAsJsonAsync("/api/auth/register", new { email, password });
+        
+        // Login
+        var response = await _client.PostAsJsonAsync("/api/auth/login", new { email, password });
+        var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+        
+        var userId = result!.UserId;
+        _testUserIds.Add(userId);
+        return userId;
+    }
+
+    private async Task<int> CreateTestWorkout(int userId, string name)
+    {
+        var workout = new Workout { Name = name, UserId = userId };
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/workouts");
+        request.Headers.Add("X-User-Id", userId.ToString());
+        request.Content = JsonContent.Create(workout);
+        
+        var response = await _client.SendAsync(request);
+        var result = await response.Content.ReadFromJsonAsync<IdResponse>();
+        return result!.Id;
+    }
+
+    private class LoginResponse
+    {
+        public int UserId { get; set; }
+    }
+
+    private class IdResponse
+    {
+        public int Id { get; set; }
     }
 }

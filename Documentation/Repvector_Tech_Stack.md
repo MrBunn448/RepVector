@@ -2,13 +2,13 @@
 
 This document outlines the technologies chosen for the RepVector project and the rationale behind their selection.
 
-## Core Framework: .NET 10
-RepVector is built on **.NET 10**, the latest evolution of Microsoft's cross-platform development framework.
+## Core Framework: .NET 8.0 / 9.0
+RepVector is built on **.NET 8.0 / 9.0**, utilizing the latest long-term support and standard support features of Microsoft's cross-platform development framework.
 
 ### Rationale
-* **Performance**: .NET 10 provides industry-leading runtime performance, which is critical for handling high-frequency workout data logging.
+* **Performance**: .NET provides industry-leading runtime performance, which is critical for handling high-frequency workout data logging.
 * **Unified Ecosystem**: Using a single framework for the UI (Razor Pages), API (ASP.NET Core), and Logic layers simplifies development and shared model management.
-* **Modern Language Features**: C# 14/15 features are utilized to write concise, safe, and maintainable code.
+* **Modern Language Features**: C# 12/13 features are utilized to write concise, safe, and maintainable code.
 
 ## Data Storage: MySQL
 The application uses **MySQL** as its primary relational database.

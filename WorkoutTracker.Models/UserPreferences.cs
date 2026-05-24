@@ -9,4 +9,6 @@ public class UserPreferences
     public string WeightUnit { get; set; } = "KG"; 
 
     public string DistanceUnit { get; set; } = "KM";
+
+    public DateTime UpdatedAt { get; set; }
 }

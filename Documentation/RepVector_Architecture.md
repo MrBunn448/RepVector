@@ -7,7 +7,7 @@ This document outlines the architectural structure of the RepVector application 
 RepVector utilizes **Dependency Inversion**, a principle where high-level modules (Logic) do not depend on low-level modules (DAL). Instead, both depend on abstractions. In this project, these abstractions live within the Logic layer, making it the "Core" of the system.
 
 ### Project Dependency Diagram (Compile-time)
-This diagram shows which projects reference each other. Note that the **DAL depends on Logic**, as it must implement the interfaces defined there.
+This diagram shows which projects reference each other. Note that the **DAL depends on Logic**, as it must implement the interfaces defined there. The **API Gateway** project acts as the **Composition Root**, referencing both Logic and DAL to facilitate Dependency Injection.
 
 ```mermaid
 graph TD
@@ -20,7 +20,6 @@ graph TD
 
     %% Compile-time Dependencies
     UI --> Models
-    UI -- "References" --> API
 
     API --> Models
     API --> Logic
@@ -87,10 +86,10 @@ sequenceDiagram
     WorkoutsController->>WorkoutsController: UserContextFilter populates CurrentUser
     WorkoutsController->>WorkoutService: CreateWorkoutAsync(workout, CurrentUser)
 
-    Note over WorkoutService: 1. Authorization & Role Validation<br/>2. Set UserId/IsPredefined<br/>3. Set CreatedAt
+    Note over WorkoutService: 1. Authorization & Role Validation<br/>2. Set UserId/IsPredefined
 
     WorkoutService->>WorkoutRepo: CreateAsync(workout)
-    WorkoutRepo->>DB: INSERT INTO workouts ...
+    WorkoutRepo->>DB: INSERT INTO workouts (..., created_at) VALUES (..., CURRENT_TIMESTAMP)
     DB-->>WorkoutRepo: returns workoutId
     WorkoutRepo-->>WorkoutService: returns workoutId
 

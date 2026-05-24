@@ -18,7 +18,7 @@ The system implements role-based access control to distinguish between standard 
 
 ## System Architecture
 
-The project follows a strictly decoupled four-layer architecture to ensure modularity and ease of maintenance. For a detailed breakdown of the internal mechanics and data flow, see the [Architecture Documentation](ARCHITECTURE.md).
+The project follows a strictly decoupled four-layer architecture to ensure modularity and ease of maintenance. For a detailed breakdown of the internal mechanics and data flow, see the [Architecture Documentation](Documentation/RepVector_Architecture.md).
 
 1. **WorkoutTracker.UI**: A Razor Pages web application that handles user interaction and presentation logic.
 2. **WorkoutTracker.Api**: An ASP.NET Core Web API that exposes RESTful endpoints and manages security and request routing.
