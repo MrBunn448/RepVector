@@ -4,13 +4,22 @@ This document outlines the testing strategy, current coverage, and infrastructur
 
 ## 1. Testing Strategy Overview
 
-RepVector utilizes **Integration Testing** to verify the entire system stack—from the API controllers down to the raw SQL execution in the Data Access Layer (DAL). 
+RepVector utilizes a two-tier testing strategy to balance development speed with system reliability.
+
+### Tier 1: Unit Testing (`WorkoutTracker.Logic.Tests`)
+*   **Focus:** Core business logic, authorization rules, and validation.
+*   **Infrastructure:** Uses **Moq** to bypass the database entirely.
+*   **Benefit:** Extremely fast; allows for testing complex scenarios (like admin-only rules) without database setup.
+
+### Tier 2: Integration Testing (`WorkoutTracker.IntegrationTests`)
+*   **Focus:** Entire system stack, including API routing, SQL query correctness, and database constraints.
+*   **Infrastructure:** Uses the real **`repvectortest`** database with a **Zero-Mock Policy**.
+*   **Benefit:** Guarantees that the code actually works when connected to MySQL.
 
 ### Key Principles:
-*   **Real-Stack Validation:** 100% of integration tests execute real HTTP requests against an in-memory version of the API. There are no "Mock" or "Fake" repositories in the integration layer.
-*   **Dynamic Data Flow:** Tests do not use hardcoded IDs (like `User 1`). Instead, they follow a "Create -> Capture ID -> Use" pattern. This makes tests resilient to the current state of the database.
-*   **Isolated Test Environment:** All tests target a dedicated local database (`repvectortest`) via a test-specific `appsettings.json`.
-*   **Automatic Cleanup:** Every test is responsible for cleaning up its own data, leaving the test database in a pristine state.
+*   **Dynamic Data Flow:** Integration tests do not use hardcoded IDs. They follow a "Create -> Capture ID -> Use" pattern.
+*   **Automated Cleanup:** Every test cleans its own data from `repvectortest` via cascading deletes.
+*   **Coverage Tracking:** **Coverlet** is used to monitor and report on how much of the application is verified by these two tiers.
 
 ---
 
