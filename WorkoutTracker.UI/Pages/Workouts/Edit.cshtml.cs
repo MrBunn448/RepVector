@@ -5,42 +5,26 @@ using WorkoutTracker.UI.Services;
 
 namespace WorkoutTracker.UI.Pages.Workouts;
 
-/// <summary>
-/// Page model for editing an existing workout template.
-/// Handles permission validation and updates to workout metadata and ownership.
-/// </summary>
 public class EditModel : PageModel
 {
     private readonly WorkoutApiClient _api;
     private readonly ExerciseApiClient _exerciseApi;
 
-    /// <summary> Gets or sets the workout template being edited. </summary>
     [BindProperty]
     public Workout Workout { get; set; } = new();
 
-    /// <summary> Gets or sets the list of all exercises available in the system. </summary>
     public List<Exercise> AllExercises { get; set; } = new();
 
-    /// <summary> Gets or sets a value indicating whether the current user is an administrator. </summary>
     public bool IsAdmin { get; set; }
 
-    /// <summary>
-    /// Initializes a new instance of the EditModel.
-    /// </summary>
-    /// <param name="api">Client for workout metadata.</param>
-    /// <param name="exerciseApi">Client for exercise metadata.</param>
     public EditModel(WorkoutApiClient api, ExerciseApiClient exerciseApi)
     {
         _api = api;
         _exerciseApi = exerciseApi;
     }
 
-    /// <summary>
-    /// Lifecycle method executed on GET requests.
+
     /// Loads the workout details and validates that the user has permission to edit it.
-    /// </summary>
-    /// <param name="id">The ID of the workout to edit.</param>
-    /// <returns>A Page result, a redirect if unauthenticated, or a 404/403 if unauthorized.</returns>
     public async Task<IActionResult> OnGet(int id)
     {
         var userId = HttpContext.Session.GetInt32("UserId");
@@ -62,11 +46,7 @@ public class EditModel : PageModel
         return Page();
     }
 
-    /// <summary>
-    /// Action method for form submission.
     /// Validates ownership logic, ensures data consistency, and updates the workout record.
-    /// </summary>
-    /// <returns>A redirect to the index page or the current page if validation fails.</returns>
     public async Task<IActionResult> OnPost()
     {
         var userId = HttpContext.Session.GetInt32("UserId");

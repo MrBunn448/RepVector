@@ -5,10 +5,6 @@ using WorkoutTracker.UI.Services;
 
 namespace WorkoutTracker.UI.Pages.Workouts;
 
-/// <summary>
-/// Page model for viewing workout template details.
-/// Handles exercise management within a template (add/remove) and starting new sessions.
-/// </summary>
 public class DetailsModel : PageModel
 {
     private readonly WorkoutApiClient _apiClient;
@@ -16,9 +12,7 @@ public class DetailsModel : PageModel
     private readonly ExerciseApiClient _exerciseApi;
     private readonly SessionApiClient _sessionApi;
 
-    /// <summary>
     /// Initializes a new instance of the DetailsModel.
-    /// </summary>
     public DetailsModel(
         WorkoutApiClient apiClient,
         WorkoutExerciseApiClient workoutExercises,
@@ -31,36 +25,23 @@ public class DetailsModel : PageModel
         _sessionApi = sessionApi;
     }
 
-    /// <summary> Gets the workout metadata. </summary>
     public Workout? Workout { get; private set; }
-    /// <summary> Gets the list of exercises currently linked to this workout. </summary>
     public List<WorkoutExercise> Exercises { get; private set; } = new();
-    /// <summary> Gets the list of global exercises available to add. </summary>
     public List<Exercise> RepVectorExercises { get; private set; } = new();
-    /// <summary> Gets the list of personal exercises available to add. </summary>
     public List<Exercise> PersonalExercises { get; private set; } = new();
 
-    /// <summary> Gets or sets the ID of the exercise selected to be added to the workout. </summary>
     [BindProperty]
     public int SelectedExerciseId { get; set; }
 
-    /// <summary> Gets or sets the target sets for the new exercise link. </summary>
     [BindProperty]
     public int TargetSets { get; set; } = 3;
 
-    /// <summary> Gets or sets the target repetitions for the new exercise link. </summary>
     [BindProperty]
     public int TargetReps { get; set; } = 10;
 
-    /// <summary> Gets or sets an error message for session start conflicts. </summary>
     public string? ConflictError { get; set; }
 
-    /// <summary>
-    /// Lifecycle method executed on GET requests.
     /// Loads the workout, its linked exercises, and the catalog of available movements.
-    /// </summary>
-    /// <param name="id">The ID of the workout to view.</param>
-    /// <returns>A Page result, a redirect if unauthenticated, or a 404/403 if unauthorized.</returns>
     public async Task<IActionResult> OnGet(int id)
     {
         var userId = HttpContext.Session.GetInt32("UserId");
@@ -84,12 +65,7 @@ public class DetailsModel : PageModel
         return Page();
     }
 
-    /// <summary>
     /// Action method to start a new workout session based on this template.
-    /// </summary>
-    /// <param name="id">The ID of the workout template.</param>
-    /// <param name="force">If true, cancels any existing active session.</param>
-    /// <returns>A redirect to the active session page or current page on conflict.</returns>
     public async Task<IActionResult> OnPostStartSessionAsync(int id, bool force = false)
     {
         var userId = HttpContext.Session.GetInt32("UserId");
@@ -110,11 +86,8 @@ public class DetailsModel : PageModel
         return await OnGet(id);
     }
 
-    /// <summary>
+
     /// Action method to add a movement link to the workout template.
-    /// </summary>
-    /// <param name="id">The ID of the workout template.</param>
-    /// <returns>A redirect back to the details page.</returns>
     public async Task<IActionResult> OnPostAddExerciseAsync(int id)
     {
         var userId = HttpContext.Session.GetInt32("UserId");
@@ -139,12 +112,7 @@ public class DetailsModel : PageModel
         return RedirectToPage(new { id });
     }
 
-    /// <summary>
     /// Action method to remove a movement link from the workout template.
-    /// </summary>
-    /// <param name="id">The ID of the workout template.</param>
-    /// <param name="exerciseId">The ID of the link to remove.</param>
-    /// <returns>A redirect back to the details page.</returns>
     public async Task<IActionResult> OnPostDeleteExerciseAsync(int id, int exerciseId)
     {
         var userId = HttpContext.Session.GetInt32("UserId");
