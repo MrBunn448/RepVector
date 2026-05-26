@@ -13,6 +13,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
     ?? throw new InvalidOperationException(
         "Connection string 'DefaultConnection' not found.");
 
+//Singleton meand only 1 instance can exist, ideal for static global services like this.
 builder.Services.AddSingleton(new DbConnectionFactory(connectionString));
 
 // Infrastructure

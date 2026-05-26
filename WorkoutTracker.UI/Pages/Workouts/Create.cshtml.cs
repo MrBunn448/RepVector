@@ -17,10 +17,6 @@ public class CreateModel : PageModel
     public bool IsAdmin { get; set; }
     public string? ErrorMessage { get; set; }
 
-
-
-    /// name="api">Client for workout metadata.
-    /// name="exerciseApi">Client for exercise metadata.
     public CreateModel(WorkoutApiClient api, ExerciseApiClient exerciseApi)
     {
         _api = api;

@@ -5,10 +5,9 @@ using WorkoutTracker.Logic.Infrastructure;
 
 namespace WorkoutTracker.Api.Infrastructure;
 
-/// <summary>
 /// A global action filter that extracts user identification from request headers.
 /// It populates a scoped UserContext object by fetching the User from the repository using the X-User-Id header.
-/// </summary>
+
 public class UserContextFilter : IAsyncActionFilter
 {
     private readonly IUserRepository _userRepository;

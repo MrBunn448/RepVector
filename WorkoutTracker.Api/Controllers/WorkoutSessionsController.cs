@@ -6,21 +6,14 @@ using WorkoutTracker.Api.Infrastructure;
 
 namespace WorkoutTracker.Api.Controllers;
 
-/// <summary>
 /// Controller for managing live workout sessions.
-/// Provides endpoints to start sessions, update status, and log performance data.
-/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class WorkoutSessionsController(IWorkoutSessionService sessionService, UserContext userContext) 
     : BaseWorkoutController(userContext)
 {
-    /// <summary>
     /// Retrieves a specific workout session by its identifier.
     /// Includes performance logs for the session.
-    /// </summary>
-    /// <param name="workoutSessionId">The unique ID of the session.</param>
-    /// <returns>The session details and its set logs.</returns>
     [HttpGet("{workoutSessionId}")]
     public async Task<IActionResult> GetById(int workoutSessionId)
     {
@@ -37,10 +30,7 @@ public class WorkoutSessionsController(IWorkoutSessionService sessionService, Us
         return Ok(session);
     }
 
-    /// <summary>
     /// Retrieves the currently active session for the authenticated user.
-    /// </summary>
-    /// <returns>The active session details if found, otherwise 404.</returns>
     [HttpGet("user/active")]
     public async Task<IActionResult> GetActiveSession()
     {
@@ -53,10 +43,7 @@ public class WorkoutSessionsController(IWorkoutSessionService sessionService, Us
         return Ok(session);
     }
 
-    /// <summary>
     /// Retrieves the full workout history for the authenticated user.
-    /// </summary>
-    /// <returns>A list of past and current sessions.</returns>
     [HttpGet("user/history")]
     public async Task<IActionResult> GetHistory()
     {
@@ -66,12 +53,7 @@ public class WorkoutSessionsController(IWorkoutSessionService sessionService, Us
         return Ok(sessions);
     }
 
-    /// <summary>
     /// Initializes a new workout session based on a workout template.
-    /// </summary>
-    /// <param name="workoutId">The ID of the template to start.</param>
-    /// <param name="cancelExisting">Whether to cancel any current active session.</param>
-    /// <returns>An OK response with the new session ID.</returns>
     [HttpPost("start/{workoutId}")]
     public async Task<IActionResult> StartSession(int workoutId, [FromQuery] bool cancelExisting = false)
     {
@@ -87,12 +69,7 @@ public class WorkoutSessionsController(IWorkoutSessionService sessionService, Us
         return result.ToActionResult();
     }
 
-    /// <summary>
     /// Updates the status of an ongoing session (e.g., to completed or cancelled).
-    /// </summary>
-    /// <param name="workoutSessionId">The ID of the session.</param>
-    /// <param name="status">The new status string.</param>
-    /// <returns>A Result mapped to an ActionResult.</returns>
     [HttpPut("{workoutSessionId}/status")]
     public async Task<IActionResult> UpdateStatus(int workoutSessionId, [FromBody] string status)
     {
@@ -101,12 +78,7 @@ public class WorkoutSessionsController(IWorkoutSessionService sessionService, Us
         return (await sessionService.UpdateSessionStatusAsync(workoutSessionId, status, CurrentUser)).ToActionResult();
     }
 
-    /// <summary>
     /// Records a new performance set log for an exercise in a session.
-    /// </summary>
-    /// <param name="workoutSessionId">The ID of the session.</param>
-    /// <param name="log">The set performance data.</param>
-    /// <returns>A Result mapped to an ActionResult.</returns>
     [HttpPost("{workoutSessionId}/log-set")]
     public async Task<IActionResult> LogSet(int workoutSessionId, [FromBody] WorkoutSetLog log)
     {
@@ -116,11 +88,7 @@ public class WorkoutSessionsController(IWorkoutSessionService sessionService, Us
         return (await sessionService.SaveSetLogAsync(log, CurrentUser)).ToActionResult();
     }
 
-    /// <summary>
     /// Deletes a workout session record.
-    /// </summary>
-    /// <param name="workoutSessionId">The ID of the session to delete.</param>
-    /// <returns>A Result mapped to an ActionResult.</returns>
     [HttpDelete("{workoutSessionId}")]
     public async Task<IActionResult> DeleteSession(int workoutSessionId)
     {

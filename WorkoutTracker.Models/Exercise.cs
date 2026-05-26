@@ -1,8 +1,6 @@
 namespace WorkoutTracker.Models;
 
-/// <summary>
 /// Represents a physical exercise that can be performed in a workout.
-/// </summary>
 public class Exercise
 {
 

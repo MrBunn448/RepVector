@@ -11,10 +11,7 @@ namespace WorkoutTracker.Api.Controllers;
 public class UserPreferencesController(IPreferenceService preferenceService, UserContext userContext) 
     : BaseWorkoutController(userContext)
 {
-    /// <summary>
     /// Retrieves the preferences for the currently authenticated user.
-    /// </summary>
-    /// <returns>The UserPreferences object. Returns default values if no preferences are stored yet.</returns>
     [HttpGet]
     public async Task<IActionResult> Get()
     {
@@ -29,11 +26,7 @@ public class UserPreferencesController(IPreferenceService preferenceService, Use
         return Ok(userPreferences);
     }
 
-    /// <summary>
     /// Saves or updates the preferences for the authenticated user.
-    /// </summary>
-    /// <param name="userPreferences">The preference data to save.</param>
-    /// <returns>A Result mapped to an ActionResult.</returns>
     [HttpPost]
     public async Task<IActionResult> Save([FromBody] UserPreferences userPreferences)
     {

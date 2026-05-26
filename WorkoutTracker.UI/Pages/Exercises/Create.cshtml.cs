@@ -10,22 +10,15 @@ public class CreateModel : PageModel
 {
     private readonly ExerciseApiClient _api;
     private readonly MetadataApiClient _metadataApi;
-
-    /// <summary> Gets or sets the exercise being created. </summary>
     [BindProperty]
     public Exercise Exercise { get; set; } = new();
 
-    /// <summary> Gets or sets the list of muscle groups for the dropdown. </summary>
     public List<SelectListItem> MuscleGroups { get; set; } = new();
-    /// <summary> Gets or sets the list of exercise types for the dropdown. </summary>
     public List<SelectListItem> ExerciseTypes { get; set; } = new();
 
-    /// <summary> Gets or sets a value indicating whether the current user is an administrator. </summary>
     public bool IsAdmin { get; set; }
 
-    /// <summary>
     /// Initializes a new instance of the CreateModel.
-    /// </summary>
     public CreateModel(ExerciseApiClient api, MetadataApiClient metadataApi)
     {
         _api = api;
@@ -33,9 +26,8 @@ public class CreateModel : PageModel
     }
 
 
-    /// Exercutes On 'get' (Page load)
+    /// Exercutes On Page load
     /// Prepares the form by loading necessary metadata and checking user roles.
-
     /// returns A Page result or a redirect to login if unauthenticated.
     public async Task<IActionResult> OnGetAsync()
     {
