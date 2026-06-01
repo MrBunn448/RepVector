@@ -16,7 +16,6 @@ public class ActiveModel : PageModel
     public Workout? Workout { get; set; }
     public UserPreferences Preferences { get; set; } = new();
     public List<Exercise> AllExercises { get; set; } = new();
-    public List<Workout> AllWorkouts { get; set; } = new();
 
     public ActiveModel(SessionApiClient sessionApi, WorkoutApiClient workoutApi, PreferenceApiClient prefApi, ExerciseApiClient exerciseApi)
     {
@@ -39,7 +38,6 @@ public class ActiveModel : PageModel
         Workout = await _workoutApi.GetWorkoutDetails(Session.WorkoutId.GetValueOrDefault(), userId.Value);
         Preferences = await _prefApi.GetPreferences(userId.Value);
         AllExercises = await _exerciseApi.GetAllExercises(userId.Value);
-        AllWorkouts = await _workoutApi.GetWorkouts(userId.Value);
 
         return Page();
     }
@@ -109,28 +107,5 @@ public class ActiveModel : PageModel
         }
 
         return RedirectToPage("./Index");
-    }
-
-    /// AJAX action method to fetch detailed exercise list for a workout template.
-    /// Used when switching workouts during an active session.
-    /// Returns A JSON result with simplified workout exercise data.
-    public async Task<IActionResult> OnGetWorkoutDetailsAsync(int id)
-    {
-        var userId = HttpContext.Session.GetInt32("UserId");
-        if (!userId.HasValue) return new JsonResult(null);
-
-        var workout = await _workoutApi.GetWorkoutDetails(id, userId.Value);
-        if (workout == null) return new JsonResult(null);
-
-        // Map to a simpler structure for JS
-        var result = workout.Exercises.Select(we => new
-        {
-            we.ExerciseId,
-            ExerciseName = we.Exercise?.Name ?? "Unknown",
-            we.TargetSets,
-            we.TargetReps
-        });
-
-        return new JsonResult(result);
     }
 }

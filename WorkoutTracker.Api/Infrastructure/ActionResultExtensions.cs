@@ -13,16 +13,18 @@ public static class ActionResultExtensions
     /// returnsAn IActionResult such as OkResult, NotFoundObjectResult, etc.
     public static IActionResult ToActionResult(this Result result)
     {
+        var response = new { message = result.ErrorMessage };
         return result.Type switch
         {
             ResultType.Ok => new OkResult(),
-            ResultType.NotFound => new NotFoundObjectResult(result.ErrorMessage),
-            ResultType.Forbidden => new ObjectResult(result.ErrorMessage) { StatusCode = 403 },
-            ResultType.Conflict => new ConflictObjectResult(result.ErrorMessage),
-            ResultType.BadRequest => new BadRequestObjectResult(result.ErrorMessage),
-            _ => new StatusCodeResult(500)
+            ResultType.NotFound => new NotFoundObjectResult(response),
+            ResultType.Forbidden => new ObjectResult(response) { StatusCode = 403 },
+            ResultType.Conflict => new ConflictObjectResult(response),
+            ResultType.BadRequest => new BadRequestObjectResult(response),
+            _ => new ObjectResult(new { message = result.ErrorMessage ?? "An unexpected error occurred." }) { StatusCode = 500 }
         };
     }
+
     public static IActionResult ToActionResult<T>(this Result<T> result)
     {
         if (result.IsSuccess)
@@ -30,13 +32,14 @@ public static class ActionResultExtensions
             return new OkObjectResult(result.Value);
         }
 
+        var response = new { message = result.ErrorMessage };
         return result.Type switch
         {
-            ResultType.NotFound => new NotFoundObjectResult(result.ErrorMessage),
-            ResultType.Forbidden => new ObjectResult(result.ErrorMessage) { StatusCode = 403 },
-            ResultType.Conflict => new ConflictObjectResult(result.ErrorMessage),
-            ResultType.BadRequest => new BadRequestObjectResult(result.ErrorMessage),
-            _ => new StatusCodeResult(500)
+            ResultType.NotFound => new NotFoundObjectResult(response),
+            ResultType.Forbidden => new ObjectResult(response) { StatusCode = 403 },
+            ResultType.Conflict => new ConflictObjectResult(response),
+            ResultType.BadRequest => new BadRequestObjectResult(response),
+            _ => new ObjectResult(new { message = result.ErrorMessage ?? "An unexpected error occurred." }) { StatusCode = 500 }
         };
     }
 }

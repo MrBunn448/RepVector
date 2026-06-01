@@ -24,7 +24,7 @@ INSERT IGNORE INTO exercises (name, description, type, primary_muscle_group_id, 
 ('Dips', 'Compound triceps and chest movement.', 'Bodyweight', (SELECT id FROM muscle_groups WHERE name = 'Chest'), 1);
 
 -- 3. Seed Users (Password: Password123!)
-SET @common_hash = 'AQIDBAUGBwgJCgsMDQ4PEOnH6v8+P6f7e8q9r/6+P6f7e8q9r/6+P6f7e8q9r/4=';
+SET @common_hash = 'AQIDBAUGBwgJCgsMDQ4PENgxkti7kZ43fC/BNWkOeQWEVtRPychGoUSxbEwraWG8';
 
 INSERT IGNORE INTO users (email, password_hash, role) VALUES 
 ('admin@repvector.com', @common_hash, 'Admin'),

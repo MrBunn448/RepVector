@@ -131,45 +131,18 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-0">
-                <ul class="nav nav-tabs nav-fill" id="addTabs" role="tablist">
-                    <li class="nav-item">
-                        <button class="nav-link active fw-bold" id="ex-tab" data-bs-toggle="tab" data-bs-target="#ex-pane" type="button">Exercises</button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="nav-link fw-bold" id="wk-tab" data-bs-toggle="tab" data-bs-target="#wk-pane" type="button">Workouts</button>
-                    </li>
-                </ul>
-                <div class="tab-content">
-                    <div class="tab-pane fade show active" id="ex-pane" role="tabpanel">
-                        <div class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
-                            @foreach (var ex in Model.AllExercises.OrderBy(e => e.Name))
-                            {
-                                <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3" 
-                                        onclick="addActiveExercise('@ex.Id', '@ex.Name')">
-                                    <div>
-                                        <div class="fw-bold">@ex.Name</div>
-                                        <div class="small text-muted">@ex.Type • @(ex.PrimaryMuscleGroup?.Name ?? "Other")</div>
-                                    </div>
-                                    <i class="bi bi-plus-circle-fill text-success fs-4"></i>
-                                </button>
-                            }
-                        </div>
-                    </div>
-                    <div class="tab-pane fade" id="wk-pane" role="tabpanel">
-                        <div class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
-                            @foreach (var wk in Model.AllWorkouts.OrderBy(w => w.Name))
-                            {
-                                <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3" 
-                                        onclick="addExercisesFromWorkout('@wk.Id')">
-                                    <div>
-                                        <div class="fw-bold">@wk.Name</div>
-                                        <div class="small text-muted">Add all exercises from this template</div>
-                                    </div>
-                                    <i class="bi bi-plus-square-fill text-primary fs-4"></i>
-                                </button>
-                            }
-                        </div>
-                    </div>
+                <div class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
+                    @foreach (var ex in Model.AllExercises.OrderBy(e => e.Name))
+                    {
+                        <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3" 
+                                onclick="addActiveExercise('@ex.Id', '@ex.Name')">
+                            <div>
+                                <div class="fw-bold">@ex.Name</div>
+                                <div class="small text-muted">@ex.Type • @(ex.PrimaryMuscleGroup?.Name ?? "Other")</div>
+                            </div>
+                            <i class="bi bi-plus-circle-fill text-success fs-4"></i>
+                        </button>
+                    }
                 </div>
             </div>
         </div>
@@ -212,17 +185,6 @@
             if (confirm('Remove this exercise from current session?')) {
                 btn.closest('.exercise-card').remove();
             }
-        }
-
-        async function addExercisesFromWorkout(workoutId) {
-            const response = await fetch(`?handler=WorkoutDetails&id=${workoutId}`);
-            if (response.ok) {
-                const exercises = await response.json();
-                exercises.forEach(ex => {
-                    addActiveExercise(ex.exerciseId, ex.exerciseName, ex.targetSets, ex.targetReps);
-                });
-            }
-            bootstrap.Modal.getInstance(document.getElementById('addExerciseModal')).hide();
         }
 
         function addActiveExercise(id, name, targetSets = 1, targetReps = 10) {
