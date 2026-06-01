@@ -1,11 +1,11 @@
--- RepVector Master Setup Script (SOLID & Clean)
--- This script creates the database from scratch and aligns with the expanded feature set.
+-- RepVector Database Blueprint
+-- Database: i572013_repvectorprod
+-- This script creates the table structure only.
 
-CREATE DATABASE IF NOT EXISTS repvectorprod CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE repvectorprod;
+SET FOREIGN_KEY_CHECKS = 0;
 
 -- 1. Users & Preferences
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
   id INT NOT NULL AUTO_INCREMENT,
   email VARCHAR(255) NOT NULL UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE users (
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE user_preferences (
+CREATE TABLE IF NOT EXISTS user_preferences (
   user_id INT PRIMARY KEY,
   username VARCHAR(50),
   weight_unit ENUM('KG', 'LBS') DEFAULT 'KG',
@@ -24,14 +24,14 @@ CREATE TABLE user_preferences (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 2. Muscle Groups (Admin Managed)
-CREATE TABLE muscle_groups (
+CREATE TABLE IF NOT EXISTS muscle_groups (
   id INT NOT NULL AUTO_INCREMENT,
   name VARCHAR(50) NOT NULL UNIQUE,
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 3. Exercises (Master Library & Personal)
-CREATE TABLE exercises (
+CREATE TABLE IF NOT EXISTS exercises (
   id INT NOT NULL AUTO_INCREMENT,
   user_id INT NULL,
   name VARCHAR(100) NOT NULL,
@@ -46,7 +46,7 @@ CREATE TABLE exercises (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 4. Workouts (Templates)
-CREATE TABLE workouts (
+CREATE TABLE IF NOT EXISTS workouts (
   id INT NOT NULL AUTO_INCREMENT,
   user_id INT NULL,
   name VARCHAR(100) NOT NULL,
@@ -58,7 +58,7 @@ CREATE TABLE workouts (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 5. Workout-Exercise Mapping (Static Template definition)
-CREATE TABLE workout_exercises (
+CREATE TABLE IF NOT EXISTS workout_exercises (
   id INT NOT NULL AUTO_INCREMENT,
   workout_id INT NOT NULL,
   exercise_id INT NOT NULL,
@@ -72,11 +72,11 @@ CREATE TABLE workout_exercises (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 6. Workout Sessions (The "Logging" Instance)
-CREATE TABLE workout_sessions (
+CREATE TABLE IF NOT EXISTS workout_sessions (
   id INT NOT NULL AUTO_INCREMENT,
   user_id INT NOT NULL,
-  workout_id INT NULL, -- Made nullable to preserve history after template deletion
-  workout_name VARCHAR(100), -- Snapshot of name at start time
+  workout_id INT NULL,
+  workout_name VARCHAR(100),
   started_at DATETIME NOT NULL,
   finished_at DATETIME NULL,
   total_seconds INT DEFAULT 0,
@@ -84,28 +84,23 @@ CREATE TABLE workout_sessions (
   PRIMARY KEY (id),
   CONSTRAINT fk_ws_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   CONSTRAINT fk_ws_workout FOREIGN KEY (workout_id) REFERENCES workouts(id) ON DELETE SET NULL
-  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-  -- 7. Workout Set Logs (The actual performance data)
-  CREATE TABLE workout_set_logs (
+-- 7. Workout Set Logs (The actual performance data)
+CREATE TABLE IF NOT EXISTS workout_set_logs (
   id INT NOT NULL AUTO_INCREMENT,
   session_id INT NOT NULL,
   exercise_id INT NOT NULL,
   set_number INT NOT NULL,
   weight DECIMAL(6,2) DEFAULT 0,
   reps INT NOT NULL,
-  rpe INT NULL, -- Allowed 1-10
+  rpe INT NULL,
   set_type ENUM('Warm-up', 'Normal', 'Failure', 'Drop set') DEFAULT 'Normal',
   completed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   CONSTRAINT fk_wsl_session FOREIGN KEY (session_id) REFERENCES workout_sessions(id) ON DELETE CASCADE,
   CONSTRAINT fk_wsl_exercise FOREIGN KEY (exercise_id) REFERENCES exercises(id) ON DELETE CASCADE,
   CONSTRAINT chk_rpe CHECK (rpe IS NULL OR (rpe >= 1 AND rpe <= 10))
-  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Seed Data: Muscle Groups
-INSERT INTO muscle_groups (name) VALUES 
-('Abdominals'), ('Abductors'), ('Biceps'), ('Calves'), ('Cardio'), 
-('Chest'), ('Forearms'), ('Full Body'), ('Glutes'), ('Hamstrings'), 
-('Lats'), ('Lower Back'), ('Neck'), ('Quadriceps'), ('Shoulders'), 
-('Traps'), ('Upper Back'), ('Other');
+SET FOREIGN_KEY_CHECKS = 1;
