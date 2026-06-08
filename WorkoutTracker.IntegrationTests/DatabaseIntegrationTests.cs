@@ -45,7 +45,7 @@ public class DatabaseIntegrationTests : IClassFixture<WorkoutTrackerWebApplicati
     [Fact]
     public async Task WorkoutLifecycle_EndToEnd_Works()
     {
-        // --- PHASE 1: PREPARATION ---
+        // PHASE 1: PREPARATION
         var testEmail = $"workout_user_{Guid.NewGuid()}@example.com";
         var password = "StrongPassword123!";
         
@@ -55,7 +55,7 @@ public class DatabaseIntegrationTests : IClassFixture<WorkoutTrackerWebApplicati
         var userId = loginResult!.UserId;
         _testUserIds.Add(userId); // Track for cleanup
 
-        // --- PHASE 2: TEMPLATE CREATION ---
+        // PHASE 2: TEMPLATE CREATION
         var newWorkout = new Workout 
         { 
             Name = "Integration Test Workout", 
@@ -71,7 +71,7 @@ public class DatabaseIntegrationTests : IClassFixture<WorkoutTrackerWebApplicati
         var workoutIdObj = await createResponse.Content.ReadFromJsonAsync<IdResponse>();
         var workoutId = workoutIdObj!.Id;
 
-        // --- PHASE 3: LIVE SESSION ---
+        // PHASE 3: LIVE SESSION
         var startRequest = new HttpRequestMessage(HttpMethod.Post, $"/api/workoutsessions/start/{workoutId}");
         startRequest.Headers.Add("X-User-Id", userId.ToString());
         var startResponse = await _client.SendAsync(startRequest);
@@ -79,11 +79,20 @@ public class DatabaseIntegrationTests : IClassFixture<WorkoutTrackerWebApplicati
         var sessionIdObj = await startResponse.Content.ReadFromJsonAsync<IdResponse>();
         var sessionId = sessionIdObj!.Id;
 
-        // --- PHASE 4: PERFORMANCE LOGGING ---
+        // PHASE 4: PERFORMANCE LOGGING
+        // Create an exercise first to avoid Foreign Key violations
+        var exercise = new Exercise { Name = "Test Pushup", Type = "Bodyweight", UserId = userId };
+        var exRequest = new HttpRequestMessage(HttpMethod.Post, "/api/exercises");
+        exRequest.Headers.Add("X-User-Id", userId.ToString());
+        exRequest.Content = JsonContent.Create(exercise);
+        var exResponse = await _client.SendAsync(exRequest);
+        exResponse.EnsureSuccessStatusCode();
+        var exerciseIdObj = await exResponse.Content.ReadFromJsonAsync<IdResponse>();
+
         var setLog = new WorkoutSetLog
         {
             SessionId = sessionId,
-            ExerciseId = 1, 
+            ExerciseId = exerciseIdObj!.Id, 
             SetNumber = 1,
             Weight = 50,
             Reps = 10,
@@ -92,9 +101,10 @@ public class DatabaseIntegrationTests : IClassFixture<WorkoutTrackerWebApplicati
         var logRequest = new HttpRequestMessage(HttpMethod.Post, $"/api/workoutsessions/{sessionId}/log-set");
         logRequest.Headers.Add("X-User-Id", userId.ToString());
         logRequest.Content = JsonContent.Create(setLog);
-        await _client.SendAsync(logRequest);
+        var logResponse = await _client.SendAsync(logRequest);
+        logResponse.EnsureSuccessStatusCode();
         
-        // --- PHASE 5: COMPLETION & HISTORY ---
+        // PHASE 5: COMPLETION & HISTORY
         var finishRequest = new HttpRequestMessage(HttpMethod.Put, $"/api/workoutsessions/{sessionId}/status");
         finishRequest.Headers.Add("X-User-Id", userId.ToString());
         finishRequest.Content = JsonContent.Create("completed");
@@ -107,7 +117,7 @@ public class DatabaseIntegrationTests : IClassFixture<WorkoutTrackerWebApplicati
         historyResponse.EnsureSuccessStatusCode();
         var sessions = await historyResponse.Content.ReadFromJsonAsync<List<WorkoutSession>>();
 
-        // --- ASSERTIONS ---
+        // ASSERTIONS
         Assert.NotNull(sessions);
         Assert.Contains(sessions, s => s.Id == sessionId && s.Status == "completed");
     }

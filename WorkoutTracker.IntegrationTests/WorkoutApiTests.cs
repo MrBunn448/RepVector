@@ -24,7 +24,7 @@ public class WorkoutApiTests : IClassFixture<WorkoutTrackerWebApplicationFactory
     public async Task DisposeAsync()
     {
         // Cleanup: Delete all users created during tests. 
-        using var scope = _factory.Services.CreateScope();
+        using var scope = _factory.Services.CreateScope(); // 
         var userRepo = scope.ServiceProvider.GetRequiredService<IUserRepository>();
         var workoutRepo = scope.ServiceProvider.GetRequiredService<IWorkoutRepository>();
 

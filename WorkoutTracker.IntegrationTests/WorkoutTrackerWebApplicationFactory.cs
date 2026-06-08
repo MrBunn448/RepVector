@@ -23,11 +23,8 @@ public class WorkoutTrackerWebApplicationFactory : WebApplicationFactory<Program
   //makes the tests extremely fast and avoids "Port already in use" errors.
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.ConfigureAppConfiguration((context, config) =>
-        {
-            // IMPORTANT: This ensures ALL integration tests use the 'repvectortest' database
-            config.AddJsonFile("appsettings.json", optional: false);
-        });
+        // UseSetting is a reliable way to override configuration in WebApplicationFactory for Minimal APIs.
+        builder.UseSetting("ConnectionStrings:DefaultConnection", "Server=127.0.0.1;Database=repvectortest;User=root;Password=;");
 
         builder.ConfigureServices(services =>
         {

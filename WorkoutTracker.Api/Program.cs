@@ -13,13 +13,14 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
     ?? throw new InvalidOperationException(
         "Connection string 'DefaultConnection' not found.");
 
-//Singleton meand only 1 instance can exist, ideal for static global services like this.
+//Singleton meand only 1 instance can exist, ideal for static global services like this. So only 1 db connection at a time.
 builder.Services.AddSingleton(new DbConnectionFactory(connectionString));
 
+//Create one instance of this class per HTTP request
 // Infrastructure
 builder.Services.AddScoped<UserContext>();
 
-// Repositories (SOLID - Abstractions)
+// Repositories (Abstractions)
 builder.Services.AddScoped<IWorkoutRepository, WorkoutRepository>();
 builder.Services.AddScoped<IExerciseRepository, ExerciseRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
