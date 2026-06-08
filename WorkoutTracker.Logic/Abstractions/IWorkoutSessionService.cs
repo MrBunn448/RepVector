@@ -18,7 +18,11 @@ public interface IWorkoutSessionService
 
     Task<Result> UpdateSessionStatusAsync(int sessionId, string status, User editor);
 
-    Task<Result> SaveSetLogAsync(WorkoutSetLog log, User user);
+    Task<Result<WorkoutSetLog>> SaveSetLogAsync(WorkoutSetLog log, User user);
+
+    Task<Result> DeleteSetLogAsync(int sessionId, int logId, User user);
+
+    Task<Result> DeleteExerciseLogsAsync(int sessionId, int exerciseId, User user);
 
     Task<List<WorkoutSetLog>> GetSessionLogsAsync(int sessionId);
 

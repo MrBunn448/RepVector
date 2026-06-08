@@ -35,6 +35,9 @@ public class ActiveModel : PageModel
         Session = await _sessionApi.GetActiveSession(userId.Value);
         if (Session == null) return RedirectToPage("./Index");
 
+        // Load logs into the session object
+        Session.SetLogs = await _sessionApi.GetSessionLogs(Session.Id, userId.Value);
+
         Workout = await _workoutApi.GetWorkoutDetails(Session.WorkoutId.GetValueOrDefault(), userId.Value);
         Preferences = await _prefApi.GetPreferences(userId.Value);
         AllExercises = await _exerciseApi.GetAllExercises(userId.Value);
@@ -63,7 +66,33 @@ public class ActiveModel : PageModel
             SetNumber = setNumber
         };
 
-        await _sessionApi.LogSet(session.Id, log, userId.Value);
+        var logResult = await _sessionApi.LogSet(session.Id, log, userId.Value);
+        return new JsonResult(new { success = true, logId = logResult?.Id });
+    }
+
+    /// AJAX action method to delete a logged set.
+    public async Task<IActionResult> OnPostDeleteSetAsync(int logId)
+    {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (!userId.HasValue) return new JsonResult(new { success = false });
+
+        var session = await _sessionApi.GetActiveSession(userId.Value);
+        if (session == null) return new JsonResult(new { success = false });
+
+        await _sessionApi.DeleteSet(session.Id, logId, userId.Value);
+        return new JsonResult(new { success = true });
+    }
+
+    /// AJAX action method to delete all logs for an exercise.
+    public async Task<IActionResult> OnPostDeleteExerciseLogsAsync(int exerciseId)
+    {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (!userId.HasValue) return new JsonResult(new { success = false });
+
+        var session = await _sessionApi.GetActiveSession(userId.Value);
+        if (session == null) return new JsonResult(new { success = false });
+
+        await _sessionApi.DeleteExerciseLogs(session.Id, exerciseId, userId.Value);
         return new JsonResult(new { success = true });
     }
 

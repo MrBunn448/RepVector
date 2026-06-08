@@ -51,7 +51,8 @@ public interface IWorkoutSessionRepository
     /// Persists a performance set log for an exercise in a session.
     /// </summary>
     /// <param name="log">The set log data to save.</param>
-    Task AddSetLogAsync(WorkoutSetLog log);
+    /// <returns>The ID of the newly created log.</returns>
+    Task<int> AddSetLogAsync(WorkoutSetLog log);
 
     /// <summary>
     /// Retrieves all performance set logs recorded during a specific session.
@@ -59,5 +60,15 @@ public interface IWorkoutSessionRepository
     /// <param name="sessionId">The ID of the session.</param>
     /// <returns>A list of set log entities.</returns>
     Task<List<WorkoutSetLog>> GetSetLogsBySessionIdAsync(int sessionId);
+
+    /// <summary>
+    /// Deletes a specific set log by its ID.
+    /// </summary>
+    Task DeleteSetLogAsync(int logId);
+
+    /// <summary>
+    /// Deletes all set logs for a specific exercise in a session.
+    /// </summary>
+    Task DeleteExerciseLogsAsync(int sessionId, int exerciseId);
 }
 

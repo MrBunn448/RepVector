@@ -124,3 +124,42 @@ These scenarios use the **Gherkin** syntax (Given, When, Then), which is the sta
 **Given** my current preference is set to "Metric (KG)"
 **When** I change my settings to "Imperial (LBS)"
 **Then** all weights displayed in the application (templates, history, active sessions) should be converted or displayed in LBS.
+
+---
+
+# Test Execution Report
+
+This section is for testers to record the results of the acceptance tests.
+
+**Date of Execution:** [YYYY-MM-DD]  
+**Tester Name:** [Name]  
+**Environment:** [Local / Production]  
+**Overall Result:** [PASS / FAIL / PARTIAL]
+
+## 1. Summary Table
+| Metric | Count |
+| :--- | :--- |
+| **Total Test Cases** | 16 |
+| **Passed** | |
+| **Failed** | |
+| **Skipped** | |
+
+## 2. Detailed Findings
+| ID | Test Case Name | Status (P/F) | Observation / Bug Notes |
+| :--- | :--- | :--- | :--- |
+| **AT-1.1** | User Registration | | |
+| **AT-1.2** | Secure Login | | |
+| **AT-1.3** | Ownership Protection | | |
+| **AT-2.1** | View Global Catalog | | |
+| **AT-2.2** | Create Private Exercise | | |
+| **AT-2.3** | Admin Global Management | | |
+| **AT-3.1** | Create Personal Template | | |
+| **AT-3.2** | Define Exercise Sequence | | |
+| **AT-4.1** | Start Session from Template | | |
+| **AT-4.2** | Log Set Performance | | |
+| **AT-4.3** | Session Conflict Detection | | |
+| **AT-4.4** | Finish Workout | | |
+| **AT-5.1** | View Training History | | |
+| **AT-5.2** | View Session Details | | |
+| **AT-6.1** | Unit Preference Toggle | | |
+

@@ -44,7 +44,18 @@ builder.Services.AddControllers(options =>
     options.Filters.Add<UserContextFilter>();
 });
 
+builder.Services.AddCors(options =>
+{
+    var allowedOrigins = builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+    options.AddPolicy("AllowUI",
+        policy => policy.WithOrigins(allowedOrigins)
+                        .AllowAnyMethod()
+                        .AllowAnyHeader());
+});
+
 var app = builder.Build();
+
+app.UseCors("AllowUI");
 
 app.MapControllers();
 

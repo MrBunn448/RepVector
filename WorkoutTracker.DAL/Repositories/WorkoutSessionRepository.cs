@@ -118,14 +118,15 @@ public class WorkoutSessionRepository(DbConnectionFactory connectionFactory) : I
     }
 
     /// Records a performance set log (weight/reps) for a session.
-    public async Task AddSetLogAsync(WorkoutSetLog log)
+    public async Task<int> AddSetLogAsync(WorkoutSetLog log)
     {
         using var connection = connectionFactory.CreateConnection();
         await connection.OpenAsync();
 
         var sqlQuery = @"
             INSERT INTO workout_set_logs (session_id, exercise_id, set_number, weight, reps, rpe, set_type, completed_at) 
-            VALUES (@sessionId, @exerciseId, @setNumber, @weight, @reps, @rpe, @setType, @completedAt)";
+            VALUES (@sessionId, @exerciseId, @setNumber, @weight, @reps, @rpe, @setType, @completedAt);
+            SELECT LAST_INSERT_ID();";
 
         var command = new MySqlCommand(sqlQuery, connection);
         command.Parameters.AddWithValue("@sessionId", log.SessionId);
@@ -137,7 +138,8 @@ public class WorkoutSessionRepository(DbConnectionFactory connectionFactory) : I
         command.Parameters.AddWithValue("@setType", log.SetType);
         command.Parameters.AddWithValue("@completedAt", log.CompletedAt);
 
-        await command.ExecuteNonQueryAsync();
+        var resultId = await command.ExecuteScalarAsync();
+        return Convert.ToInt32(resultId);
     }
 
     /// Retrieves all sets logged during a specific workout session.
@@ -169,6 +171,31 @@ public class WorkoutSessionRepository(DbConnectionFactory connectionFactory) : I
         }
 
         return result;
+    }
+
+    /// Deletes a specific set log by its ID.
+    public async Task DeleteSetLogAsync(int logId)
+    {
+        using var connection = connectionFactory.CreateConnection();
+        await connection.OpenAsync();
+
+        var command = new MySqlCommand("DELETE FROM workout_set_logs WHERE id = @id", connection);
+        command.Parameters.AddWithValue("@id", logId);
+
+        await command.ExecuteNonQueryAsync();
+    }
+
+    /// Deletes all set logs for a specific exercise in a session.
+    public async Task DeleteExerciseLogsAsync(int sessionId, int exerciseId)
+    {
+        using var connection = connectionFactory.CreateConnection();
+        await connection.OpenAsync();
+
+        var command = new MySqlCommand("DELETE FROM workout_set_logs WHERE session_id = @sessionId AND exercise_id = @exerciseId", connection);
+        command.Parameters.AddWithValue("@sessionId", sessionId);
+        command.Parameters.AddWithValue("@exerciseId", exerciseId);
+
+        await command.ExecuteNonQueryAsync();
     }
 
     /// Maps a database row from MySqlDataReader to a WorkoutSession object.

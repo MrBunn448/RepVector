@@ -39,6 +39,19 @@ public class SessionApiClient
         return new();
     }
 
+    /// Retrieves all logs for a specific session.
+    public async Task<List<WorkoutSetLog>> GetSessionLogs(int sessionId, int userId)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, $"api/WorkoutSessions/{sessionId}/logs");
+        request.Headers.Add("X-User-Id", userId.ToString());
+
+        var response = await _httpClient.SendAsync(request);
+        if (response.IsSuccessStatusCode)
+            return await response.Content.ReadFromJsonAsync<List<WorkoutSetLog>>() ?? new();
+
+        return new();
+    }
+
     /// Retrieves a specific workout session by its identifier.
     public async Task<WorkoutSession?> GetById(int id, int userId)
     {
@@ -79,11 +92,33 @@ public class SessionApiClient
     }
 
     /// Records a performance set log for an exercise in a session.
-    public async Task LogSet(int sessionId, WorkoutSetLog log, int userId)
+    public async Task<WorkoutSetLog?> LogSet(int sessionId, WorkoutSetLog log, int userId)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, $"api/WorkoutSessions/{sessionId}/log-set");
         request.Headers.Add("X-User-Id", userId.ToString());
         request.Content = JsonContent.Create(log);
+
+        var response = await _httpClient.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadFromJsonAsync<WorkoutSetLog>();
+    }
+
+    /// Deletes a specific set log.
+    public async Task DeleteSet(int sessionId, int logId, int userId)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Delete, $"api/WorkoutSessions/{sessionId}/sets/{logId}");
+        request.Headers.Add("X-User-Id", userId.ToString());
+
+        var response = await _httpClient.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+    }
+
+    /// Deletes all logs for a specific exercise in a session.
+    public async Task DeleteExerciseLogs(int sessionId, int exerciseId, int userId)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Delete, $"api/WorkoutSessions/{sessionId}/exercises/{exerciseId}/logs");
+        request.Headers.Add("X-User-Id", userId.ToString());
 
         var response = await _httpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();

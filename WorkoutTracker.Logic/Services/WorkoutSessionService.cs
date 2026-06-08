@@ -89,16 +89,41 @@ public class WorkoutSessionService(
     }
 
     /// Records a new performance set log for an exercise in a session.
-    public async Task<Result> SaveSetLogAsync(WorkoutSetLog workoutSetLog, User user)
+    public async Task<Result<WorkoutSetLog>> SaveSetLogAsync(WorkoutSetLog workoutSetLog, User user)
     {
         var workoutSession = await workoutSessionRepository.GetByIdAsync(workoutSetLog.SessionId);
         
         // Use Centralized Authorization
         var authResult = auth.CanModifySession(user, workoutSession);
-        if (authResult.IsFailure) return authResult;
+        if (authResult.IsFailure) return Result<WorkoutSetLog>.Failure(authResult.ErrorMessage!, authResult.Type);
 
         workoutSetLog.CompletedAt = DateTime.UtcNow;
-        await workoutSessionRepository.AddSetLogAsync(workoutSetLog);
+        var logId = await workoutSessionRepository.AddSetLogAsync(workoutSetLog);
+        workoutSetLog.Id = logId;
+        return Result<WorkoutSetLog>.Success(workoutSetLog);
+    }
+
+    /// Deletes a specific set log from a session.
+    public async Task<Result> DeleteSetLogAsync(int sessionId, int logId, User user)
+    {
+        var workoutSession = await workoutSessionRepository.GetByIdAsync(sessionId);
+        
+        var authResult = auth.CanModifySession(user, workoutSession);
+        if (authResult.IsFailure) return authResult;
+
+        await workoutSessionRepository.DeleteSetLogAsync(logId);
+        return Result.Success();
+    }
+
+    /// Deletes all logs for a specific exercise in a session.
+    public async Task<Result> DeleteExerciseLogsAsync(int sessionId, int exerciseId, User user)
+    {
+        var workoutSession = await workoutSessionRepository.GetByIdAsync(sessionId);
+        
+        var authResult = auth.CanModifySession(user, workoutSession);
+        if (authResult.IsFailure) return authResult;
+
+        await workoutSessionRepository.DeleteExerciseLogsAsync(sessionId, exerciseId);
         return Result.Success();
     }
 

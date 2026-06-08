@@ -40,17 +40,17 @@ public class WorkoutApiTests : IClassFixture<WorkoutTrackerWebApplicationFactory
         }
     }
 
-    [Fact]
+    [Fact] // Fact, marks it as a test method that should be run by the test runner.
     public async Task GetWorkouts_ReturnsOk_WithWorkouts()
     {
-        // --- PHASE 1: PREPARATION (Dynamic User) ---
+        // step 1: PREPARATION (Dynamic User)
         var userId = await CreateTestUserAndLogin();
 
-        // --- PHASE 2: DATA SETUP (Dynamic Workout) ---
+        // step 2: DATA SETUP (Dynamic Workout)
         var workoutName = $"API Test Workout {Guid.NewGuid()}";
         await CreateTestWorkout(userId, workoutName);
 
-        // --- PHASE 3: THE ACTUAL TEST ---
+        // step 3: THE ACTUAL TEST
         var request = new HttpRequestMessage(HttpMethod.Get, "/api/workouts");
         request.Headers.Add("X-User-Id", userId.ToString());
         var response = await _client.SendAsync(request);
@@ -78,7 +78,7 @@ public class WorkoutApiTests : IClassFixture<WorkoutTrackerWebApplicationFactory
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    // --- HELPER METHODS FOR DYNAMIC FLOW ---
+    // HELPER METHODS FOR DYNAMIC FLOW (??)
 
     private async Task<int> CreateTestUserAndLogin()
     {

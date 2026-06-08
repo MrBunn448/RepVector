@@ -48,13 +48,50 @@
                             </tr>
                         </thead>
                         <tbody class="sets-body">
-                            <tr class="set-row" data-set-num="1">
+                            @{
+                                var existingLogs = Model.Session?.SetLogs.Where(l => l.ExerciseId == we.ExerciseId).OrderBy(l => l.SetNumber).ToList() ?? new();
+                                int setCounter = 1;
+                            }
+
+                            @if (existingLogs.Any())
+                            {
+                                foreach (var log in existingLogs)
+                                {
+                                    <tr class="set-row table-success" data-set-num="@log.SetNumber" data-log-id="@log.Id">
+                                        <td class="ps-3">
+                                            <button class="btn btn-sm btn-outline-danger border-0 remove-set-btn" onclick="removeSet(this)" title="Remove Set">
+                                                <i class="bi bi-dash-circle"></i>
+                                            </button>
+                                        </td>
+                                        <td class="fw-bold">@log.SetNumber</td>
+                                        <td>
+                                            <select class="form-select form-select-sm set-type" disabled>
+                                                <option value="Normal" selected="@(log.SetType == "Normal")">Normal</option>
+                                                <option value="Warm-up" selected="@(log.SetType == "Warm-up")">Warm-up</option>
+                                                <option value="Failure" selected="@(log.SetType == "Failure")">Failure</option>
+                                                <option value="Drop set" selected="@(log.SetType == "Drop set")">Drop set</option>
+                                            </select>
+                                        </td>
+                                        <td><input type="number" class="form-control form-control-sm weight" step="0.5" value="@log.Weight" disabled></td>
+                                        <td><input type="number" class="form-control form-control-sm reps" value="@log.Reps" disabled></td>
+                                        <td><input type="number" class="form-control form-control-sm rpe" value="@log.Rpe" disabled></td>
+                                        <td class="text-end pe-4">
+                                            <button class="btn btn-sm btn-success log-btn" disabled>
+                                                <i class="bi bi-check-lg"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    setCounter = log.SetNumber + 1;
+                                }
+                            }
+                            
+                            <tr class="set-row" data-set-num="@setCounter">
                                 <td class="ps-3">
                                     <button class="btn btn-sm btn-outline-danger border-0 remove-set-btn" onclick="removeSet(this)" title="Remove Set">
                                         <i class="bi bi-dash-circle"></i>
                                     </button>
                                 </td>
-                                <td class="fw-bold">1</td>
+                                <td class="fw-bold">@setCounter</td>
                                 <td>
                                     <select class="form-select form-select-sm set-type">
                                         <option value="Normal">Normal</option>
@@ -169,21 +206,62 @@
 
         setInterval(updateTimer, 1000);
 
-        function removeSet(btn) {
-            const body = btn.closest('.sets-body');
+        async function removeSet(btn) {
+            const row = btn.closest('tr');
+            const logId = row.dataset.logId;
+            const body = row.closest('.sets-body');
+
+            if (logId) {
+                if (!confirm('This set is already logged. Delete it from database?')) return;
+                
+                const response = await fetch('?handler=DeleteSet&logId=' + logId, {
+                    method: 'POST',
+                    headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value }
+                });
+                
+                if (!response.ok) {
+                    alert('Failed to delete set from database.');
+                    return;
+                }
+            }
+
             if (body.querySelectorAll('tr').length > 1) {
-                btn.closest('tr').remove();
+                row.remove();
                 // Re-index sets
                 body.querySelectorAll('tr').forEach((row, i) => {
                     row.dataset.setNum = i + 1;
                     row.querySelector('td:nth-child(2)').innerText = i + 1;
                 });
+            } else {
+                // If it's the last row, just clear it instead of removing
+                row.classList.remove('table-success');
+                row.querySelector('.log-btn').classList.remove('btn-success');
+                row.querySelector('.log-btn').classList.add('btn-outline-primary');
+                row.querySelector('.log-btn').disabled = false;
+                delete row.dataset.logId;
             }
         }
 
-        function removeExercise(btn) {
+        async function removeExercise(btn) {
+            const card = btn.closest('.exercise-card');
+            const exerciseId = card.dataset.exerciseId;
+            const hasLoggedSets = card.querySelector('.log-btn.btn-success') !== null;
+
             if (confirm('Remove this exercise from current session?')) {
-                btn.closest('.exercise-card').remove();
+                if (hasLoggedSets) {
+                    if (!confirm('This exercise has logged sets. Delete all logs from database?')) return;
+
+                    const response = await fetch('?handler=DeleteExerciseLogs&exerciseId=' + exerciseId, {
+                        method: 'POST',
+                        headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value }
+                    });
+
+                    if (!response.ok) {
+                        alert('Failed to delete logs from database.');
+                        return;
+                    }
+                }
+                card.remove();
             }
         }
 
@@ -342,9 +420,14 @@
             });
 
             if (response.ok) {
+                const result = await response.json();
                 btn.classList.remove('btn-outline-primary');
                 btn.classList.add('btn-success');
                 btn.disabled = true;
+                row.classList.add('table-success');
+                if (result.logId) {
+                    row.dataset.logId = result.logId;
+                }
             }
         }
     </script>

@@ -43,6 +43,16 @@ public class WorkoutSessionsController(IWorkoutSessionService sessionService, Us
         return Ok(session);
     }
 
+    /// Retrieves all logs for a specific session.
+    [HttpGet("{workoutSessionId}/logs")]
+    public async Task<IActionResult> GetLogs(int workoutSessionId)
+    {
+        if (CurrentUser == null) return UnauthorizedWithMessage();
+
+        var logs = await sessionService.GetSessionLogsAsync(workoutSessionId);
+        return Ok(logs);
+    }
+
     /// Retrieves the full workout history for the authenticated user.
     [HttpGet("user/history")]
     public async Task<IActionResult> GetHistory()
@@ -86,6 +96,24 @@ public class WorkoutSessionsController(IWorkoutSessionService sessionService, Us
 
         log.SessionId = workoutSessionId;
         return (await sessionService.SaveSetLogAsync(log, CurrentUser)).ToActionResult();
+    }
+
+    /// Deletes a specific set log from a session.
+    [HttpDelete("{workoutSessionId}/sets/{logId}")]
+    public async Task<IActionResult> DeleteSet(int workoutSessionId, int logId)
+    {
+        if (CurrentUser == null) return UnauthorizedWithMessage();
+
+        return (await sessionService.DeleteSetLogAsync(workoutSessionId, logId, CurrentUser)).ToActionResult();
+    }
+
+    /// Deletes all logs for a specific exercise in a session.
+    [HttpDelete("{workoutSessionId}/exercises/{exerciseId}/logs")]
+    public async Task<IActionResult> DeleteExerciseLogs(int workoutSessionId, int exerciseId)
+    {
+        if (CurrentUser == null) return UnauthorizedWithMessage();
+
+        return (await sessionService.DeleteExerciseLogsAsync(workoutSessionId, exerciseId, CurrentUser)).ToActionResult();
     }
 
     /// Deletes a workout session record.
