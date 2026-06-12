@@ -23,21 +23,22 @@ public class WorkoutService(
 
     public async Task<Result<int>> CreateWorkoutAsync(Workout workout, User creator)
     {
-        // 1. Authorization & Role Validation
+        // 1. Validation:
+        // Check role
         if (workout.IsPredefined && creator.Role != "Admin")
             return Result<int>.Forbidden("Only admins can create predefined workout templates.");
-
+        // check workout type
         if (workout.IsPredefined)
         {
-            workout.UserId = null;
+            workout.UserId = null; // null = Globaly viewable
             
-            // Validation: Predefined workouts must only contain predefined exercises
+            // Validation: global workouts must only contain global exercises
             if (workout.Exercises != null && workout.Exercises.Any())
             {
                 foreach (var we in workout.Exercises)
                 {
                     var exercise = await exerciseRepository.GetByIdAsync(we.ExerciseId);
-                    if (exercise != null && !exercise.IsPredefined)
+                    if (exercise != null && !exercise.IsPredefined) //Personal exercise added, trow failure.
                         return Result<int>.Failure($"Template '{workout.Name}' cannot contain personal exercise '{exercise.Name}'.");
                 }
             }
@@ -47,11 +48,11 @@ public class WorkoutService(
             workout.UserId = creator.Id;
         }
 
-        // 2. Data Persistence
-        workout.CreatedAt = DateTime.UtcNow;
+        // 2. Data Persistence:
+        workout.CreatedAt = DateTime.UtcNow; //Creation time
         var workoutId = await workoutRepository.CreateAsync(workout);
 
-        // Save nested exercises
+        // Save exercises:
         if (workout.Exercises != null)
         {
             foreach (var we in workout.Exercises)
@@ -61,7 +62,7 @@ public class WorkoutService(
             }
         }
 
-        return Result<int>.Success(workoutId);
+        return Result<int>.Success(workoutId); 
     }
 
     public async Task<Result> UpdateWorkoutAsync(Workout workout, User editor)

@@ -6,9 +6,6 @@ public class Result
     public bool IsFailure => !IsSuccess;
     public string? ErrorMessage { get; }
     public ResultType Type { get; }
-    /// <param name="success">Whether the operation succeeded.</param>
-    /// <param name="errorMessage">The error message if it failed.</param>
-    /// <param name="type">The type of result.</param>
     protected Result(bool success, string? errorMessage, ResultType type)
     {
         IsSuccess = success;
