@@ -32,16 +32,19 @@ public class EditModel : PageModel
             return RedirectToPage("/Auth/Login");
 
         IsAdmin = HttpContext.Session.GetString("UserRole") == "Admin";
-        Workout = await _api.GetWorkoutDetails(id, userId.Value);
+        var result = await _api.GetWorkoutDetails(id, userId.Value);
 
-        if (Workout == null)
-            return NotFound();
+        if (result.IsFailure)
+            return result.Type == ResultType.NotFound ? NotFound() : RedirectToPage("./Index");
+
+        Workout = result.Value!;
 
         // Permission check
         if (Workout.UserId != userId && !IsAdmin)
             return Forbid();
 
-        AllExercises = await _exerciseApi.GetAllExercises(userId.Value);
+        var exercisesResult = await _exerciseApi.GetAllExercises(userId.Value);
+        AllExercises = exercisesResult.Value ?? new();
 
         return Page();
     }
@@ -56,14 +59,17 @@ public class EditModel : PageModel
         IsAdmin = HttpContext.Session.GetString("UserRole") == "Admin";
 
         // Re-load exercises in case of validation error or to use in page
-        AllExercises = await _exerciseApi.GetAllExercises(userId.Value);
+        var exercisesResult = await _exerciseApi.GetAllExercises(userId.Value);
+        AllExercises = exercisesResult.Value ?? new();
 
         if (!ModelState.IsValid)
             return Page();
 
         // Permission check (existing workout check)
-        var existing = await _api.GetWorkoutDetails(Workout.Id, userId.Value);
-        if (existing == null) return NotFound();
+        var result = await _api.GetWorkoutDetails(Workout.Id, userId.Value);
+        if (result.IsFailure) return result.Type == ResultType.NotFound ? NotFound() : RedirectToPage("./Index");
+        
+        var existing = result.Value!;
         
         // Block normal users from editing global templates or others' workouts
         if (existing.IsPredefined && !IsAdmin)

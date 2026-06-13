@@ -4,79 +4,84 @@ using WorkoutTracker.Models;
 namespace WorkoutTracker.UI.Services;
 
 /// Handles retrieval and management of exercises, passing user identification in request headers.
-public class ExerciseApiClient
+/// Inherits from BaseApiClient for standardized error handling.
+public class ExerciseApiClient(HttpClient httpClient) : BaseApiClient(httpClient)
 {
-    private readonly HttpClient _httpClient;
-
-
-    /// Initializes a new instance of the ExerciseApiClient.
-    public ExerciseApiClient(HttpClient httpClient)
-    {
-        _httpClient = httpClient;
-    }
-
-    /// Retrieves all exercises available from the specified user.
-    public async Task<List<Exercise>> GetAllExercises(int userId)
+    /// Retrieves all exercises available to the specified user.
+    public async Task<Result<List<Exercise>>> GetAllExercises(int userId)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, "api/exercises");
         request.Headers.Add("X-User-Id", userId.ToString());
 
-        var response = await _httpClient.SendAsync(request);
+        var response = await HttpClient.SendAsync(request);
         if (response.IsSuccessStatusCode)
         {
-            return await response.Content.ReadFromJsonAsync<List<Exercise>>() ?? new List<Exercise>();
+            var data = await response.Content.ReadFromJsonAsync<List<Exercise>>() ?? new List<Exercise>();
+            return Result<List<Exercise>>.Success(data);
         }
-        return new List<Exercise>();
+
+        return await HandleFailure<List<Exercise>>(response);
     }
 
-    /// returns The Exercise object if successful, otherwise null
-    public async Task<Exercise?> GetExerciseById(int id, int userId)
+    /// Retrieves a specific exercise by its identifier.
+    public async Task<Result<Exercise>> GetExerciseById(int id, int userId)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, $"api/exercises/{id}");
         request.Headers.Add("X-User-Id", userId.ToString());
 
-        var response = await _httpClient.SendAsync(request);
+        var response = await HttpClient.SendAsync(request);
         if (response.IsSuccessStatusCode)
         {
-            return await response.Content.ReadFromJsonAsync<Exercise>();
+            var data = await response.Content.ReadFromJsonAsync<Exercise>();
+            return data != null ? Result<Exercise>.Success(data) : Result<Exercise>.NotFound();
         }
-        return null;
+
+        return await HandleFailure<Exercise>(response);
     }
 
-    /// returns The ID of the newly created exercise
-    public async Task<int> CreateExercise(Exercise exercise, int userId)
+    /// Creates a new exercise definition.
+    public async Task<Result<int>> CreateExercise(Exercise exercise, int userId)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, "api/exercises");
         request.Headers.Add("X-User-Id", userId.ToString());
         request.Content = JsonContent.Create(exercise);
 
-        var response = await _httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
-
-        var location = response.Headers.Location?.ToString();
-        if (!string.IsNullOrEmpty(location) && location.Split('/').Last() is string id && int.TryParse(id, out var exerciseId))
+        var response = await HttpClient.SendAsync(request);
+        if (response.IsSuccessStatusCode)
         {
-            return exerciseId;
+            var location = response.Headers.Location?.ToString();
+            if (!string.IsNullOrEmpty(location) && location.Split('/').Last() is string id && int.TryParse(id, out var exerciseId))
+            {
+                return Result<int>.Success(exerciseId);
+            }
+            return Result<int>.Failure("Exercise created but ID was not returned.");
         }
-        return 0;
+
+        return await HandleFailure<int>(response);
     }
 
-    public async Task UpdateExercise(Exercise exercise, int userId)
+    /// Updates an existing exercise definition.
+    public async Task<Result> UpdateExercise(Exercise exercise, int userId)
     {
         using var request = new HttpRequestMessage(HttpMethod.Put, $"api/exercises/{exercise.Id}");
         request.Headers.Add("X-User-Id", userId.ToString());
         request.Content = JsonContent.Create(exercise);
 
-        var response = await _httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
+        var response = await HttpClient.SendAsync(request);
+        if (response.IsSuccessStatusCode) return Result.Success();
+
+        return await HandleFailure(response);
     }
 
-    public async Task DeleteExercise(int id, int userId)
+    /// Removes an exercise definition.
+    public async Task<Result> DeleteExercise(int id, int userId)
     {
         using var request = new HttpRequestMessage(HttpMethod.Delete, $"api/exercises/{id}");
         request.Headers.Add("X-User-Id", userId.ToString());
 
-        var response = await _httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
+        var response = await HttpClient.SendAsync(request);
+        if (response.IsSuccessStatusCode) return Result.Success();
+
+        return await HandleFailure(response);
     }
 }

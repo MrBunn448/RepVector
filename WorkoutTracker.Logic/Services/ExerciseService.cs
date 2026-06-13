@@ -9,13 +9,34 @@ public class ExerciseService(
     IAuthorizationService auth) : IExerciseService
 {
     /// Retrieves all exercises available to a specific user, including their own and global ones.
-    public Task<List<Exercise>> GetAllAsync(int userId)
-        => exerciseRepository.GetAllAsync(userId);
+    public async Task<Result<List<Exercise>>> GetAllAsync(int userId)
+    {
+        try
+        {
+            var exercises = await exerciseRepository.GetAllAsync(userId);
+            return Result<List<Exercise>>.Success(exercises);
+        }
+        catch (Exception ex)
+        {
+            return Result<List<Exercise>>.Failure($"Failed to retrieve exercises: {ex.Message}", ResultType.Error);
+        }
+    }
 
 
     /// Retrieves a specific exercise by its id
-    public Task<Exercise?> GetByIdAsync(int exerciseId)
-        => exerciseRepository.GetByIdAsync(exerciseId);
+    public async Task<Result<Exercise>> GetByIdAsync(int exerciseId)
+    {
+        try
+        {
+            var exercise = await exerciseRepository.GetByIdAsync(exerciseId);
+            if (exercise == null) return Result<Exercise>.NotFound();
+            return Result<Exercise>.Success(exercise);
+        }
+        catch (Exception ex)
+        {
+            return Result<Exercise>.Failure($"Failed to retrieve exercise: {ex.Message}", ResultType.Error);
+        }
+    }
 
     /// Creates a new exercise. Only admins can create predefined exercises.
     public async Task<Result<int>> CreateAsync(Exercise exercise, User creator)

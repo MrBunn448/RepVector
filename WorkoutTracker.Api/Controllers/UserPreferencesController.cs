@@ -17,13 +17,15 @@ public class UserPreferencesController(IPreferenceService preferenceService, Use
     {
         if (CurrentUser == null) return UnauthorizedWithMessage();
 
-        var userPreferences = await preferenceService.GetPreferencesAsync(CurrentUser.Id);
-        if (userPreferences == null)
+        var result = await preferenceService.GetPreferencesAsync(CurrentUser.Id);
+        
+        if (result.Type == ResultType.NotFound)
         {
             // Return default prefs if none exist
-            userPreferences = new UserPreferences { UserId = CurrentUser.Id };
+            return Ok(new UserPreferences { UserId = CurrentUser.Id });
         }
-        return Ok(userPreferences);
+
+        return result.ToActionResult();
     }
 
     /// Saves or updates the preferences for the authenticated user.

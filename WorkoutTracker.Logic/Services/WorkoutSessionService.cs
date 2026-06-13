@@ -9,57 +9,90 @@ public class WorkoutSessionService(
     IAuthorizationService auth) : IWorkoutSessionService
 {
     /// Retrieves a specific workout session by its ID.
-    public async Task<WorkoutSession?> GetByIdAsync(int workoutSessionId)
+    public async Task<Result<WorkoutSession>> GetByIdAsync(int workoutSessionId)
     {
-        return await workoutSessionRepository.GetByIdAsync(workoutSessionId);
+        try
+        {
+            var session = await workoutSessionRepository.GetByIdAsync(workoutSessionId);
+            if (session == null) return Result<WorkoutSession>.NotFound();
+            return Result<WorkoutSession>.Success(session);
+        }
+        catch (Exception ex)
+        {
+            return Result<WorkoutSession>.Failure($"Failed to retrieve session: {ex.Message}", ResultType.Error);
+        }
     }
 
     /// Retrieves all workout sessions belonging to a specific user.
-    public async Task<List<WorkoutSession>> GetUserSessionsAsync(int userId)
+    public async Task<Result<List<WorkoutSession>>> GetUserSessionsAsync(int userId)
     {
-        return await workoutSessionRepository.GetByUserIdAsync(userId);
+        try
+        {
+            var sessions = await workoutSessionRepository.GetByUserIdAsync(userId);
+            return Result<List<WorkoutSession>>.Success(sessions);
+        }
+        catch (Exception ex)
+        {
+            return Result<List<WorkoutSession>>.Failure($"Failed to retrieve history: {ex.Message}", ResultType.Error);
+        }
     }
 
     /// Retrieves the currently active session for a user, if one exists.
-    public async Task<WorkoutSession?> GetActiveSessionAsync(int userId)
+    public async Task<Result<WorkoutSession>> GetActiveSessionAsync(int userId)
     {
-        return await workoutSessionRepository.GetActiveSessionByUserIdAsync(userId);
+        try
+        {
+            var session = await workoutSessionRepository.GetActiveSessionByUserIdAsync(userId);
+            if (session == null) return Result<WorkoutSession>.NotFound();
+            return Result<WorkoutSession>.Success(session);
+        }
+        catch (Exception ex)
+        {
+            return Result<WorkoutSession>.Failure($"Failed to check active session: {ex.Message}", ResultType.Error);
+        }
     }
 
     /// Starts a new workout session from a template. 
     /// If an active session exists and cancelExisting is false, it returns a Conflict result.
     public async Task<Result<int>> StartSessionAsync(int userId, int workoutId, bool cancelExisting = false)
     {
-        var activeSession = await workoutSessionRepository.GetActiveSessionByUserIdAsync(userId);
-        if (activeSession != null)
+        try
         {
-            if (cancelExisting)
+            var activeSession = await workoutSessionRepository.GetActiveSessionByUserIdAsync(userId);
+            if (activeSession != null)
             {
-                activeSession.Status = "cancelled";
-                activeSession.FinishedAt = DateTime.UtcNow;
-                await workoutSessionRepository.UpdateAsync(activeSession);
+                if (cancelExisting)
+                {
+                    activeSession.Status = "cancelled";
+                    activeSession.FinishedAt = DateTime.UtcNow;
+                    await workoutSessionRepository.UpdateAsync(activeSession);
+                }
+                else
+                {
+                    // Signal to the UI that a session is already in progress
+                    return Result<int>.Failure("AN_ACTIVE_SESSION_EXISTS", ResultType.Conflict);
+                }
             }
-            else
+
+            var workout = await workoutRepository.GetByIdAsync(workoutId);
+            if (workout == null) return Result<int>.NotFound("Workout template not found.");
+
+            var workoutSession = new WorkoutSession
             {
-                // Signal to the UI that a session is already in progress
-                return Result<int>.Failure("AN_ACTIVE_SESSION_EXISTS", ResultType.Conflict);
-            }
+                UserId = userId,
+                WorkoutId = workoutId,
+                WorkoutName = workout.Name,
+                StartedAt = DateTime.UtcNow,
+                Status = "active"
+            };
+
+            var sessionId = await workoutSessionRepository.CreateAsync(workoutSession);
+            return Result<int>.Success(sessionId);
         }
-
-        var workout = await workoutRepository.GetByIdAsync(workoutId);
-        if (workout == null) return Result<int>.NotFound("Workout template not found.");
-
-        var workoutSession = new WorkoutSession
+        catch (Exception ex)
         {
-            UserId = userId,
-            WorkoutId = workoutId,
-            WorkoutName = workout.Name,
-            StartedAt = DateTime.UtcNow,
-            Status = "active"
-        };
-
-        var sessionId = await workoutSessionRepository.CreateAsync(workoutSession);
-        return Result<int>.Success(sessionId);
+            return Result<int>.Failure($"Failed to start session: {ex.Message}", ResultType.Error);
+        }
     }
 
     /// Updates the status of a session (e.g., to completed or cancelled). 
@@ -128,9 +161,17 @@ public class WorkoutSessionService(
     }
 
     /// Retrieves all sets logged for a specific session.
-    public async Task<List<WorkoutSetLog>> GetSessionLogsAsync(int sessionId)
+    public async Task<Result<List<WorkoutSetLog>>> GetSessionLogsAsync(int sessionId)
     {
-        return await workoutSessionRepository.GetSetLogsBySessionIdAsync(sessionId);
+        try
+        {
+            var logs = await workoutSessionRepository.GetSetLogsBySessionIdAsync(sessionId);
+            return Result<List<WorkoutSetLog>>.Success(logs);
+        }
+        catch (Exception ex)
+        {
+            return Result<List<WorkoutSetLog>>.Failure($"Failed to retrieve session logs: {ex.Message}", ResultType.Error);
+        }
     }
 
 

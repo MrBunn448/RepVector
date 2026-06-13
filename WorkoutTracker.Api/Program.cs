@@ -37,6 +37,7 @@ builder.Services.AddScoped<IWorkoutSessionService, WorkoutSessionService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IWorkoutExerciseService, WorkoutExerciseService>();
 builder.Services.AddScoped<IPreferenceService, PreferenceService>();
+builder.Services.AddScoped<IMetadataService, MetadataService>();
 
 // Register Controllers with UserContextFilter
 builder.Services.AddControllers(options =>

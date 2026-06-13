@@ -10,8 +10,19 @@ public class PreferenceService(
     IAuthorizationService auth) : IPreferenceService
 {
     /// Retrieves the preferences for a specific user.
-    public Task<UserPreferences?> GetPreferencesAsync(int userId)
-        => userPreferencesRepository.GetByUserIdAsync(userId);
+    public async Task<Result<UserPreferences>> GetPreferencesAsync(int userId)
+    {
+        try
+        {
+            var preferences = await userPreferencesRepository.GetByUserIdAsync(userId);
+            if (preferences == null) return Result<UserPreferences>.NotFound();
+            return Result<UserPreferences>.Success(preferences);
+        }
+        catch (Exception ex)
+        {
+            return Result<UserPreferences>.Failure($"Failed to retrieve preferences: {ex.Message}", ResultType.Error);
+        }
+    }
 
     /// Saves or updates the preferences for a user. Validates authorization before saving.
     public async Task<Result> SavePreferencesAsync(UserPreferences userPreferences, User editor)

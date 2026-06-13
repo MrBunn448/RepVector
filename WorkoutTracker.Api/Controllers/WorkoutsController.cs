@@ -16,16 +16,16 @@ public class WorkoutsController(IWorkoutService workoutService, UserContext user
     public async Task<IActionResult> Get()
     {
         if (CurrentUser == null) return UnauthorizedWithMessage();
-        var workouts = await workoutService.GetAllByUserIdAsync(CurrentUser.Id);
-        return Ok(workouts);
+        var result = await workoutService.GetAllByUserIdAsync(CurrentUser.Id);
+        return result.ToActionResult();
     }
 
     /// Retrieves all workout templates owned by a specific user.
     [HttpGet("user/{userId}")]
     public async Task<IActionResult> GetByUser(int userId)
     {
-        var workouts = await workoutService.GetAllByUserIdAsync(userId);
-        return Ok(workouts);
+        var result = await workoutService.GetAllByUserIdAsync(userId);
+        return result.ToActionResult();
     }
 
     /// Retrieves basic metadata for a specific workout template.
@@ -34,12 +34,14 @@ public class WorkoutsController(IWorkoutService workoutService, UserContext user
     {
         if (CurrentUser == null) return UnauthorizedWithMessage();
 
-        var workout = await workoutService.GetByIdAsync(workoutId);
+        var result = await workoutService.GetByIdAsync(workoutId);
 
-        if (workout == null) return NotFound();
+        if (result.IsFailure) return result.ToActionResult();
+
+        var workout = result.Value;
 
         // View logic: check if owner or predefined
-        if (workout.UserId != CurrentUser.Id && !workout.IsPredefined)
+        if (workout!.UserId != CurrentUser.Id && !workout.IsPredefined)
             return Forbid("You do not have permission to view this workout.");
 
         return Ok(workout);
@@ -51,11 +53,13 @@ public class WorkoutsController(IWorkoutService workoutService, UserContext user
     {
         if (CurrentUser == null) return UnauthorizedWithMessage();
 
-        var workout = await workoutService.GetWorkoutDetailsAsync(workoutId);
+        var result = await workoutService.GetWorkoutDetailsAsync(workoutId);
 
-        if (workout == null) return NotFound();
+        if (result.IsFailure) return result.ToActionResult();
 
-        if (workout.UserId != CurrentUser.Id && !workout.IsPredefined)
+        var workout = result.Value;
+
+        if (workout!.UserId != CurrentUser.Id && !workout.IsPredefined)
             return Forbid("You do not have permission to view this workout.");
 
         return Ok(workout);

@@ -10,12 +10,33 @@ public class WorkoutExerciseService(
     IAuthorizationService auth) : IWorkoutExerciseService
 {
     /// Retrieves all exercise links for a specific workout.
-    public Task<List<WorkoutExercise>> GetByWorkoutIdAsync(int workoutId)
-        => workoutExerciseRepository.GetByWorkoutIdAsync(workoutId);
+    public async Task<Result<List<WorkoutExercise>>> GetByWorkoutIdAsync(int workoutId)
+    {
+        try
+        {
+            var exercises = await workoutExerciseRepository.GetByWorkoutIdAsync(workoutId);
+            return Result<List<WorkoutExercise>>.Success(exercises);
+        }
+        catch (Exception ex)
+        {
+            return Result<List<WorkoutExercise>>.Failure($"Failed to retrieve workout exercises: {ex.Message}", ResultType.Error);
+        }
+    }
 
     /// Retrieves a specific workout-exercise association by its identifier.
-    public Task<WorkoutExercise?> GetByIdAsync(int workoutExerciseId)
-        => workoutExerciseRepository.GetByIdAsync(workoutExerciseId);
+    public async Task<Result<WorkoutExercise>> GetByIdAsync(int workoutExerciseId)
+    {
+        try
+        {
+            var exercise = await workoutExerciseRepository.GetByIdAsync(workoutExerciseId);
+            if (exercise == null) return Result<WorkoutExercise>.NotFound();
+            return Result<WorkoutExercise>.Success(exercise);
+        }
+        catch (Exception ex)
+        {
+            return Result<WorkoutExercise>.Failure($"Failed to retrieve workout exercise: {ex.Message}", ResultType.Error);
+        }
+    }
 
     /// Adds an exercise to a workout template. Validates that the user has permission to modify the workout.
     public async Task<Result> AddAsync(WorkoutExercise workoutExercise, User user)

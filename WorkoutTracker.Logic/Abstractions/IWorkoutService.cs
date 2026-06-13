@@ -4,11 +4,11 @@ namespace WorkoutTracker.Logic.Services;
 
 public interface IWorkoutService
 {
-    Task<List<Workout>> GetAllByUserIdAsync(int userId);
+    Task<Result<List<Workout>>> GetAllByUserIdAsync(int userId);
 
-    Task<Workout?> GetByIdAsync(int workoutId);
+    Task<Result<Workout>> GetByIdAsync(int workoutId);
 
-    Task<Workout?> GetWorkoutDetailsAsync(int workoutId);
+    Task<Result<Workout>> GetWorkoutDetailsAsync(int workoutId);
 
     Task<Result<int>> CreateWorkoutAsync(Workout workout, User creator);
 

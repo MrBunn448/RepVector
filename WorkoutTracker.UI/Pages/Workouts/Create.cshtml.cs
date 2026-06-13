@@ -38,7 +38,7 @@ public class CreateModel : PageModel
             return RedirectToPage("/Auth/Login");
 
         SetAdminStatus();
-        AllExercises = await _exerciseApi.GetAllExercises(userId.Value);
+        AllExercises = (await _exerciseApi.GetAllExercises(userId.Value)).Value ?? new();
 
         return Page();
     }
@@ -50,7 +50,7 @@ public class CreateModel : PageModel
             return RedirectToPage("/Auth/Login");
 
         SetAdminStatus();
-        AllExercises = await _exerciseApi.GetAllExercises(userId.Value);
+        AllExercises = (await _exerciseApi.GetAllExercises(userId.Value)).Value ?? new();
 
         if (!ModelState.IsValid)
             return Page();

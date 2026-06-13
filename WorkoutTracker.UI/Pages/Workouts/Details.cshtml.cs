@@ -41,6 +41,9 @@ public class DetailsModel : PageModel
 
     public string? ConflictError { get; set; }
 
+    public Result<Workout>? WorkoutResult { get; set; }
+    public Result<List<WorkoutExercise>>? WorkoutExercisesResult { get; set; }
+
     /// Loads the workout, its linked exercises, and the catalog of available movements.
     public async Task<IActionResult> OnGet(int id)
     {
@@ -48,17 +51,29 @@ public class DetailsModel : PageModel
         if (!userId.HasValue)
             return RedirectToPage("/Auth/Login");
 
-        Workout = await _apiClient.GetWorkoutDetails(id, userId.Value);
-        if (Workout == null) return NotFound();
+        WorkoutResult = await _apiClient.GetWorkoutDetails(id, userId.Value);
+        if (WorkoutResult.IsFailure)
+        {
+            return WorkoutResult.Type == ResultType.NotFound ? NotFound() : Page();
+        }
+
+        Workout = WorkoutResult.Value!;
 
         if (Workout.UserId != userId.Value && !Workout.IsPredefined)
             return Forbid();
 
-        Exercises = (Workout.Exercises != null && Workout.Exercises.Any()) 
-            ? Workout.Exercises 
-            : await _workoutExercises.GetByWorkoutId(id, userId.Value);
+        if (Workout.Exercises != null && Workout.Exercises.Any())
+        {
+            Exercises = Workout.Exercises;
+        }
+        else
+        {
+            WorkoutExercisesResult = await _workoutExercises.GetByWorkoutId(id, userId.Value);
+            Exercises = WorkoutExercisesResult.Value ?? new();
+        }
 
-        var allExercises = await _exerciseApi.GetAllExercises(userId.Value);
+        var result = await _exerciseApi.GetAllExercises(userId.Value);
+        var allExercises = result.Value ?? new List<Exercise>();
         RepVectorExercises = allExercises.Where(e => e.IsPredefined).ToList();
         PersonalExercises = allExercises.Where(e => !e.IsPredefined).ToList();
 
@@ -93,8 +108,9 @@ public class DetailsModel : PageModel
         var userId = HttpContext.Session.GetInt32("UserId");
         if (!userId.HasValue) return RedirectToPage("/Auth/Login");
 
-        var workout = await _apiClient.GetWorkoutDetails(id, userId.Value);
-        if (workout == null) return NotFound();
+        var workoutResult = await _apiClient.GetWorkoutDetails(id, userId.Value);
+        if (workoutResult.IsFailure) return NotFound();
+        var workout = workoutResult.Value!;
 
         bool isAdmin = HttpContext.Session.GetString("UserRole") == "Admin";
         if (workout.IsPredefined && !isAdmin)
@@ -118,8 +134,9 @@ public class DetailsModel : PageModel
         var userId = HttpContext.Session.GetInt32("UserId");
         if (!userId.HasValue) return RedirectToPage("/Auth/Login");
 
-        var workout = await _apiClient.GetWorkoutDetails(id, userId.Value);
-        if (workout == null) return NotFound();
+        var workoutResult = await _apiClient.GetWorkoutDetails(id, userId.Value);
+        if (workoutResult.IsFailure) return NotFound();
+        var workout = workoutResult.Value!;
 
         bool isAdmin = HttpContext.Session.GetString("UserRole") == "Admin";
         if (workout.IsPredefined && !isAdmin)

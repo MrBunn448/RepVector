@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Linq;
 using WorkoutTracker.Models;
 using WorkoutTracker.UI.Services;
 
@@ -45,7 +46,8 @@ public class CreateModel : PageModel
     /// Internal helper to fetch and format metadata for UI selection lists
     private async Task LoadMetadata()
     {
-        var groups = await _metadataApi.GetMuscleGroups();
+        var result = await _metadataApi.GetMuscleGroups();
+        var groups = result.Value ?? new List<MuscleGroup>();
         MuscleGroups = groups.Select(g => new SelectListItem { Value = g.Id.ToString(), Text = g.Name }).ToList();
 
         var types = new[] { "Machine", "Bodyweight", "Barbell", "Dumbell", "Kettlebell", "Plate", "Resistance Band", "Suspension Band", "Other" };

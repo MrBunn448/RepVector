@@ -20,7 +20,7 @@ public class WorkoutExercisesController(IWorkoutExerciseService service, UserCon
     public async Task<IActionResult> GetByWorkoutId(int workoutId)
     {
         var result = await service.GetByWorkoutIdAsync(workoutId);
-        return Ok(result);
+        return result.ToActionResult();
     }
 
     /// Adds a new exercise link to a workout template.

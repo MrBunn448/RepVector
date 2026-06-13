@@ -49,9 +49,9 @@ public class WorkoutServiceTests
         var actual = await _service.GetAllByUserIdAsync(1);
 
         // Assert: verify the returned collection matches expectations and the repository was called once.
-        Assert.NotNull(actual);
-        Assert.Equal(2, actual.Count);
-        Assert.Equal("Push Day", actual[0].Name);
+        Assert.True(actual.IsSuccess);
+        Assert.Equal(2, actual.Value!.Count);
+        Assert.Equal("Push Day", actual.Value[0].Name);
 
         _repositoryMock.Verify(repo => repo.GetAllByUserIdAsync(1), Times.Once);
     }
@@ -90,9 +90,9 @@ public class WorkoutServiceTests
         var actual = await _service.GetWorkoutDetailsAsync(1);
 
         // Assert: ensure the service returned the expected workout and exercises, and that the repo was queried once.
-        Assert.NotNull(actual);
-        Assert.Equal("Leg Day", actual.Name);
-        Assert.Single(actual.Exercises);
+        Assert.True(actual.IsSuccess);
+        Assert.Equal("Leg Day", actual.Value!.Name);
+        Assert.Single(actual.Value.Exercises);
 
         _repositoryMock.Verify(
             repo => repo.GetWorkoutWithExercisesAsync(1),
@@ -113,7 +113,8 @@ public class WorkoutServiceTests
         var actual = await _service.GetWorkoutDetailsAsync(999);
 
         // Assert
-        Assert.Null(actual);
+        Assert.True(actual.IsFailure);
+        Assert.Equal(ResultType.NotFound, actual.Type);
     }
 
     [Fact]

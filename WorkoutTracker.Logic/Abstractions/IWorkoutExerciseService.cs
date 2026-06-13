@@ -4,9 +4,9 @@ namespace WorkoutTracker.Logic.Services;
 
 public interface IWorkoutExerciseService
 {
-    Task<List<WorkoutExercise>> GetByWorkoutIdAsync(int workoutId);
+    Task<Result<List<WorkoutExercise>>> GetByWorkoutIdAsync(int workoutId);
 
-    Task<WorkoutExercise?> GetByIdAsync(int workoutExerciseId);
+    Task<Result<WorkoutExercise>> GetByIdAsync(int workoutExerciseId);
 
     Task<Result> AddAsync(WorkoutExercise workoutExercise, User user);
 

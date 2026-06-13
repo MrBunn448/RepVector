@@ -22,17 +22,17 @@ public class DeleteModel : PageModel
         if (!userId.HasValue)
             return RedirectToPage("/Auth/Login");
 
-        Exercise = await _api.GetExerciseById(id, userId.Value);
+        var result = await _api.GetExerciseById(id, userId.Value);
+        Exercise = result.Value;
 
-        if (Exercise == null)
-            return NotFound();
+        if (result.IsFailure)
+            return result.Type == ResultType.NotFound ? NotFound() : RedirectToPage("./Index");
 
         return Page();
     }
 
     /// Action method for deletion confirmation.
     /// Removes the exercise record via the API client.
-    /// </summary>
     /// <param name="id">The ID of the exercise to delete.</param>
     /// <returns>A redirect to the index page.</returns>
     public async Task<IActionResult> OnPost(int id)
@@ -41,10 +41,11 @@ public class DeleteModel : PageModel
         if (!userId.HasValue)
             return RedirectToPage("/Auth/Login");
 
-        Exercise = await _api.GetExerciseById(id, userId.Value);
+        var result = await _api.GetExerciseById(id, userId.Value);
+        Exercise = result.Value;
 
-        if (Exercise == null)
-            return NotFound();
+        if (result.IsFailure)
+            return result.Type == ResultType.NotFound ? NotFound() : RedirectToPage("./Index");
 
         await _api.DeleteExercise(id, userId.Value);
         return RedirectToPage("./Index");

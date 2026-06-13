@@ -5,6 +5,20 @@
 }
 
 <div class="container mt-5">
+    @if (Model.HistoryResult?.IsFailure == true)
+    {
+        <div class="alert alert-danger d-flex align-items-center shadow-sm mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+            <div>
+                <h5 class="alert-heading mb-1">History Server Issue</h5>
+                <p class="mb-0">@Model.HistoryResult.ErrorMessage. Please refresh the page to try again.</p>
+            </div>
+            <button type="button" class="btn btn-outline-danger btn-sm ms-auto" onclick="location.reload()">
+                <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+            </button>
+        </div>
+    }
+
     <div class="row">
         <div class="col-md-4">
             <div class="card shadow-sm border-0 mb-4">

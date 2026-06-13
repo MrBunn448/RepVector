@@ -19,14 +19,18 @@ public class WorkoutSessionsController(IWorkoutSessionService sessionService, Us
     {
         if (CurrentUser == null) return UnauthorizedWithMessage();
 
-        var session = await sessionService.GetByIdAsync(workoutSessionId);
-        if (session == null) return NotFound();
+        var result = await sessionService.GetByIdAsync(workoutSessionId);
+        if (result.IsFailure) return result.ToActionResult();
+
+        var session = result.Value!;
 
         // View logic: check if owner or admin
         if (session.UserId != CurrentUser.Id && CurrentUser.Role != "Admin")
             return Forbid();
 
-        session.SetLogs = await sessionService.GetSessionLogsAsync(workoutSessionId);
+        var logsResult = await sessionService.GetSessionLogsAsync(workoutSessionId);
+        if (logsResult.IsSuccess) session.SetLogs = logsResult.Value!;
+
         return Ok(session);
     }
 
@@ -36,10 +40,13 @@ public class WorkoutSessionsController(IWorkoutSessionService sessionService, Us
     {
         if (CurrentUser == null) return UnauthorizedWithMessage();
 
-        var session = await sessionService.GetActiveSessionAsync(CurrentUser.Id);
-        if (session == null) return NotFound();
+        var result = await sessionService.GetActiveSessionAsync(CurrentUser.Id);
+        if (result.IsFailure) return result.ToActionResult();
 
-        session.SetLogs = await sessionService.GetSessionLogsAsync(session.Id);
+        var session = result.Value!;
+        var logsResult = await sessionService.GetSessionLogsAsync(session.Id);
+        if (logsResult.IsSuccess) session.SetLogs = logsResult.Value!;
+
         return Ok(session);
     }
 
@@ -49,8 +56,8 @@ public class WorkoutSessionsController(IWorkoutSessionService sessionService, Us
     {
         if (CurrentUser == null) return UnauthorizedWithMessage();
 
-        var logs = await sessionService.GetSessionLogsAsync(workoutSessionId);
-        return Ok(logs);
+        var result = await sessionService.GetSessionLogsAsync(workoutSessionId);
+        return result.ToActionResult();
     }
 
     /// Retrieves the full workout history for the authenticated user.
@@ -59,8 +66,8 @@ public class WorkoutSessionsController(IWorkoutSessionService sessionService, Us
     {
         if (CurrentUser == null) return UnauthorizedWithMessage();
 
-        var sessions = await sessionService.GetUserSessionsAsync(CurrentUser.Id);
-        return Ok(sessions);
+        var result = await sessionService.GetUserSessionsAsync(CurrentUser.Id);
+        return result.ToActionResult();
     }
 
     /// Initializes a new workout session based on a workout template.

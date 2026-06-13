@@ -11,14 +11,46 @@ public class WorkoutService(
     IAuthorizationService auth) : IWorkoutService
 {
 
-    public Task<List<Workout>> GetAllByUserIdAsync(int userId)
-        => workoutRepository.GetAllByUserIdAsync(userId);
+    public async Task<Result<List<Workout>>> GetAllByUserIdAsync(int userId)
+    {
+        try
+        {
+            var workouts = await workoutRepository.GetAllByUserIdAsync(userId);
+            return Result<List<Workout>>.Success(workouts);
+        }
+        catch (Exception ex)
+        {
+            return Result<List<Workout>>.Failure($"Failed to retrieve workouts: {ex.Message}", ResultType.Error);
+        }
+    }
 
-    public Task<Workout?> GetByIdAsync(int workoutId)
-        => workoutRepository.GetByIdAsync(workoutId);
+    public async Task<Result<Workout>> GetByIdAsync(int workoutId)
+    {
+        try
+        {
+            var workout = await workoutRepository.GetByIdAsync(workoutId);
+            if (workout == null) return Result<Workout>.NotFound();
+            return Result<Workout>.Success(workout);
+        }
+        catch (Exception ex)
+        {
+            return Result<Workout>.Failure($"Failed to retrieve workout: {ex.Message}", ResultType.Error);
+        }
+    }
 
-    public async Task<Workout?> GetWorkoutDetailsAsync(int workoutId)
-        => await workoutRepository.GetWorkoutWithExercisesAsync(workoutId);
+    public async Task<Result<Workout>> GetWorkoutDetailsAsync(int workoutId)
+    {
+        try
+        {
+            var workout = await workoutRepository.GetWorkoutWithExercisesAsync(workoutId);
+            if (workout == null) return Result<Workout>.NotFound();
+            return Result<Workout>.Success(workout);
+        }
+        catch (Exception ex)
+        {
+            return Result<Workout>.Failure($"Failed to retrieve workout details: {ex.Message}", ResultType.Error);
+        }
+    }
 
 
     public async Task<Result<int>> CreateWorkoutAsync(Workout workout, User creator)

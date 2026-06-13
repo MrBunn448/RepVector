@@ -25,10 +25,12 @@ public class DeleteModel : PageModel
             return RedirectToPage("/Auth/Login");
 
         var isAdmin = HttpContext.Session.GetString("UserRole") == "Admin";
-        Workout = await _api.GetWorkoutDetails(id, userId.Value);
+        var result = await _api.GetWorkoutDetails(id, userId.Value);
 
-        if (Workout == null)
-            return NotFound();
+        if (result.IsFailure)
+            return result.Type == ResultType.NotFound ? NotFound() : RedirectToPage("./Index");
+
+        Workout = result.Value!;
 
         if (Workout.UserId != userId && !isAdmin)
             return Forbid();
@@ -44,10 +46,12 @@ public class DeleteModel : PageModel
             return RedirectToPage("/Auth/Login");
 
         var isAdmin = HttpContext.Session.GetString("UserRole") == "Admin";
-        Workout = await _api.GetWorkoutDetails(id, userId.Value);
+        var result = await _api.GetWorkoutDetails(id, userId.Value);
 
-        if (Workout == null)
-            return NotFound();
+        if (result.IsFailure)
+            return result.Type == ResultType.NotFound ? NotFound() : RedirectToPage("./Index");
+
+        Workout = result.Value!;
 
         if (Workout.UserId != userId && !isAdmin)
             return Forbid();

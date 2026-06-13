@@ -2,17 +2,15 @@ using WorkoutTracker.Models;
 
 namespace WorkoutTracker.Logic.Services;
 
-/// <summary>
 /// Defines the contract for managing active and historical workout sessions.
-/// </summary>
 public interface IWorkoutSessionService
 {
 
-    Task<WorkoutSession?> GetByIdAsync(int workoutSessionId);
+    Task<Result<WorkoutSession>> GetByIdAsync(int workoutSessionId);
 
-    Task<List<WorkoutSession>> GetUserSessionsAsync(int userId);
+    Task<Result<List<WorkoutSession>>> GetUserSessionsAsync(int userId);
 
-    Task<WorkoutSession?> GetActiveSessionAsync(int userId);
+    Task<Result<WorkoutSession>> GetActiveSessionAsync(int userId);
     
     Task<Result<int>> StartSessionAsync(int userId, int workoutId, bool cancelExisting = false);
 
@@ -24,7 +22,7 @@ public interface IWorkoutSessionService
 
     Task<Result> DeleteExerciseLogsAsync(int sessionId, int exerciseId, User user);
 
-    Task<List<WorkoutSetLog>> GetSessionLogsAsync(int sessionId);
+    Task<Result<List<WorkoutSetLog>>> GetSessionLogsAsync(int sessionId);
 
     Task<Result> DeleteSessionAsync(int workoutSessionId, User deleter);
 }

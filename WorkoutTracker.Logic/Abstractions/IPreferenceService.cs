@@ -5,7 +5,7 @@ namespace WorkoutTracker.Logic.Services;
 public interface IPreferenceService
 {
 
-    Task<UserPreferences?> GetPreferencesAsync(int userId);
+    Task<Result<UserPreferences>> GetPreferencesAsync(int userId);
 
     Task<Result> SavePreferencesAsync(UserPreferences userPreferences, User editor);
 

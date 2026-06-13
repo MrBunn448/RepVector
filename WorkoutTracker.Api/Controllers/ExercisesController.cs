@@ -17,8 +17,8 @@ public class ExercisesController(IExerciseService exerciseService, UserContext u
     {
         if (CurrentUser == null) return UnauthorizedWithMessage();
 
-        var exercises = await exerciseService.GetAllAsync(CurrentUser.Id);
-        return Ok(exercises);
+        var result = await exerciseService.GetAllAsync(CurrentUser.Id);
+        return result.ToActionResult();
     }
 
     [HttpGet("{exerciseId}")]
@@ -26,13 +26,14 @@ public class ExercisesController(IExerciseService exerciseService, UserContext u
     {
         if (CurrentUser == null) return UnauthorizedWithMessage();
 
-        var exercise = await exerciseService.GetByIdAsync(exerciseId);
+        var result = await exerciseService.GetByIdAsync(exerciseId);
 
-        if (exercise == null)
-            return NotFound();
+        if (result.IsFailure) return result.ToActionResult();
+
+        var exercise = result.Value;
 
         // View logic: check if owner or predefined
-        if (exercise.UserId != CurrentUser.Id && !exercise.IsPredefined)
+        if (exercise!.UserId != CurrentUser.Id && !exercise.IsPredefined)
             return Forbid("You do not have permission to view this exercise.");
 
         return Ok(exercise);

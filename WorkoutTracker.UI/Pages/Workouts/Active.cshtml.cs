@@ -32,15 +32,23 @@ public class ActiveModel : PageModel
         var userId = HttpContext.Session.GetInt32("UserId");
         if (!userId.HasValue) return RedirectToPage("/Auth/Login");
 
-        Session = await _sessionApi.GetActiveSession(userId.Value);
-        if (Session == null) return RedirectToPage("./Index");
+        var sessionResult = await _sessionApi.GetActiveSession(userId.Value);
+        if (sessionResult.IsFailure) return RedirectToPage("./Index");
+
+        Session = sessionResult.Value!;
 
         // Load logs into the session object
-        Session.SetLogs = await _sessionApi.GetSessionLogs(Session.Id, userId.Value);
+        var logsResult = await _sessionApi.GetSessionLogs(Session.Id, userId.Value);
+        Session.SetLogs = logsResult.Value ?? new();
 
-        Workout = await _workoutApi.GetWorkoutDetails(Session.WorkoutId.GetValueOrDefault(), userId.Value);
-        Preferences = await _prefApi.GetPreferences(userId.Value);
-        AllExercises = await _exerciseApi.GetAllExercises(userId.Value);
+        var workoutResult = await _workoutApi.GetWorkoutDetails(Session.WorkoutId.GetValueOrDefault(), userId.Value);
+        Workout = workoutResult.Value;
+
+        var prefsResult = await _prefApi.GetPreferences(userId.Value);
+        Preferences = prefsResult.Value ?? new UserPreferences { UserId = userId.Value };
+
+        var exercisesResult = await _exerciseApi.GetAllExercises(userId.Value);
+        AllExercises = exercisesResult.Value ?? new();
 
         return Page();
     }
@@ -52,8 +60,10 @@ public class ActiveModel : PageModel
         var userId = HttpContext.Session.GetInt32("UserId");
         if (!userId.HasValue) return new JsonResult(new { success = false });
 
-        var session = await _sessionApi.GetActiveSession(userId.Value);
-        if (session == null) return new JsonResult(new { success = false });
+        var sessionResult = await _sessionApi.GetActiveSession(userId.Value);
+        if (sessionResult.IsFailure) return new JsonResult(new { success = false });
+
+        var session = sessionResult.Value!;
 
         var log = new WorkoutSetLog
         {
@@ -67,7 +77,7 @@ public class ActiveModel : PageModel
         };
 
         var logResult = await _sessionApi.LogSet(session.Id, log, userId.Value);
-        return new JsonResult(new { success = true, logId = logResult?.Id });
+        return new JsonResult(new { success = logResult.IsSuccess, logId = logResult.Value?.Id });
     }
 
     /// AJAX action method to delete a logged set.
@@ -76,11 +86,13 @@ public class ActiveModel : PageModel
         var userId = HttpContext.Session.GetInt32("UserId");
         if (!userId.HasValue) return new JsonResult(new { success = false });
 
-        var session = await _sessionApi.GetActiveSession(userId.Value);
-        if (session == null) return new JsonResult(new { success = false });
+        var sessionResult = await _sessionApi.GetActiveSession(userId.Value);
+        if (sessionResult.IsFailure) return new JsonResult(new { success = false });
 
-        await _sessionApi.DeleteSet(session.Id, logId, userId.Value);
-        return new JsonResult(new { success = true });
+        var session = sessionResult.Value!;
+
+        var result = await _sessionApi.DeleteSet(session.Id, logId, userId.Value);
+        return new JsonResult(new { success = result.IsSuccess });
     }
 
     /// AJAX action method to delete all logs for an exercise.
@@ -89,11 +101,13 @@ public class ActiveModel : PageModel
         var userId = HttpContext.Session.GetInt32("UserId");
         if (!userId.HasValue) return new JsonResult(new { success = false });
 
-        var session = await _sessionApi.GetActiveSession(userId.Value);
-        if (session == null) return new JsonResult(new { success = false });
+        var sessionResult = await _sessionApi.GetActiveSession(userId.Value);
+        if (sessionResult.IsFailure) return new JsonResult(new { success = false });
 
-        await _sessionApi.DeleteExerciseLogs(session.Id, exerciseId, userId.Value);
-        return new JsonResult(new { success = true });
+        var session = sessionResult.Value!;
+
+        var result = await _sessionApi.DeleteExerciseLogs(session.Id, exerciseId, userId.Value);
+        return new JsonResult(new { success = result.IsSuccess });
     }
 
     /// Action method to finish the current session and optionally update the workout template.
@@ -102,20 +116,25 @@ public class ActiveModel : PageModel
         var userId = HttpContext.Session.GetInt32("UserId");
         if (!userId.HasValue) return RedirectToPage("/Auth/Login");
 
-        var session = await _sessionApi.GetActiveSession(userId.Value);
-        if (session != null)
+        var sessionResult = await _sessionApi.GetActiveSession(userId.Value);
+        if (sessionResult.IsSuccess)
         {
+            var session = sessionResult.Value!;
             session.TotalSeconds = totalSeconds;
             session.Status = "completed";
             await _sessionApi.UpdateStatus(session.Id, "completed", userId.Value);
 
             if (updateTemplate)
             {
-                var workout = await _workoutApi.GetWorkoutDetails(session.WorkoutId.GetValueOrDefault(), userId.Value);
-                if (workout != null && (workout.UserId == userId || HttpContext.Session.GetString("UserRole") == "Admin"))
+                var workoutResult = await _workoutApi.GetWorkoutDetails(session.WorkoutId.GetValueOrDefault(), userId.Value);
+                if (workoutResult.IsSuccess)
                 {
-                    workout.Exercises = updatedExercises;
-                    await _workoutApi.UpdateWorkout(workout, userId.Value);
+                    var workout = workoutResult.Value!;
+                    if (workout.UserId == userId || HttpContext.Session.GetString("UserRole") == "Admin")
+                    {
+                        workout.Exercises = updatedExercises;
+                        await _workoutApi.UpdateWorkout(workout, userId.Value);
+                    }
                 }
             }
         }
@@ -129,10 +148,10 @@ public class ActiveModel : PageModel
         var userId = HttpContext.Session.GetInt32("UserId");
         if (!userId.HasValue) return RedirectToPage("/Auth/Login");
 
-        var session = await _sessionApi.GetActiveSession(userId.Value);
-        if (session != null)
+        var sessionResult = await _sessionApi.GetActiveSession(userId.Value);
+        if (sessionResult.IsSuccess)
         {
-            await _sessionApi.DeleteSession(session.Id, userId.Value);
+            await _sessionApi.DeleteSession(sessionResult.Value!.Id, userId.Value);
         }
 
         return RedirectToPage("./Index");

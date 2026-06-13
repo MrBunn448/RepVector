@@ -3,29 +3,33 @@ using WorkoutTracker.Models;
 
 namespace WorkoutTracker.UI.Services;
 
-public class MetadataApiClient
+/// Manages global system metadata such as muscle groups.
+/// Inherits from BaseApiClient for standardized error handling.
+public class MetadataApiClient(HttpClient httpClient) : BaseApiClient(httpClient)
 {
-    private readonly HttpClient _httpClient;
-
-    public MetadataApiClient(HttpClient httpClient)
-    {
-        _httpClient = httpClient;
-    }
-
     /// Retrieves all muscle groups from the API.
-    public async Task<List<MuscleGroup>> GetMuscleGroups()
+    public async Task<Result<List<MuscleGroup>>> GetMuscleGroups()
     {
-        return await _httpClient.GetFromJsonAsync<List<MuscleGroup>>("api/muscle-groups") ?? new();
+        var response = await HttpClient.GetAsync("api/muscle-groups");
+        if (response.IsSuccessStatusCode)
+        {
+            var data = await response.Content.ReadFromJsonAsync<List<MuscleGroup>>() ?? new();
+            return Result<List<MuscleGroup>>.Success(data);
+        }
+
+        return await HandleFailure<List<MuscleGroup>>(response);
     }
 
-    /// Creates a new muscle group. Requires admin privileges via the userId identification.
-    public async Task CreateMuscleGroup(MuscleGroup mg, int userId)
+    /// Creates a new muscle group. Requires admin privileges.
+    public async Task<Result> CreateMuscleGroup(MuscleGroup mg, int userId)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, "api/muscle-groups");
         request.Headers.Add("X-User-Id", userId.ToString());
         request.Content = JsonContent.Create(mg);
 
-        var response = await _httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
+        var response = await HttpClient.SendAsync(request);
+        if (response.IsSuccessStatusCode) return Result.Success();
+
+        return await HandleFailure(response);
     }
 }

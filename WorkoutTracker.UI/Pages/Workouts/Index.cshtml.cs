@@ -22,6 +22,8 @@ public class IndexModel : PageModel
     }
 
 
+    public Result<List<Workout>>? WorkoutResult { get; set; }
+
     /// Fetches all available workouts and categorizes them into personal and predefined.
     public async Task<IActionResult> OnGet()
     {
@@ -29,10 +31,14 @@ public class IndexModel : PageModel
         if (!userId.HasValue)
             return RedirectToPage("/Auth/Login");
 
-        var allWorkouts = await _api.GetWorkouts(userId.Value);
+        WorkoutResult = await _api.GetWorkouts(userId.Value);
         
-        PersonalWorkouts = allWorkouts.Where(w => !w.IsPredefined).ToList();
-        WorkoutTemplates = allWorkouts.Where(w => w.IsPredefined).ToList();
+        if (WorkoutResult.IsSuccess)
+        {
+            var allWorkouts = WorkoutResult.Value ?? new();
+            PersonalWorkouts = allWorkouts.Where(w => !w.IsPredefined).ToList();
+            WorkoutTemplates = allWorkouts.Where(w => w.IsPredefined).ToList();
+        }
 
         return Page();
     }

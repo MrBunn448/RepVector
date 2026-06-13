@@ -1,20 +1,22 @@
 using Microsoft.AspNetCore.Mvc;
-using WorkoutTracker.Logic.Abstractions.Repositories;
+using WorkoutTracker.Logic.Abstractions.Services;
 using WorkoutTracker.Logic.Infrastructure;
 using WorkoutTracker.Models;
+using WorkoutTracker.Api.Infrastructure;
 
 namespace WorkoutTracker.Api.Controllers;
 
 /// Provides endpoints to list and manage muscle groups, primarily used by admin's
 [ApiController]
 [Route("api/muscle-groups")]
-public class MuscleGroupsController(IMuscleGroupRepository muscleGroupRepository, UserContext userContext) 
+public class MuscleGroupsController(IMetadataService metadataService, UserContext userContext) 
     : BaseWorkoutController(userContext)
 {
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        return Ok(await muscleGroupRepository.GetAllAsync());
+        var result = await metadataService.GetAllMuscleGroupsAsync();
+        return result.ToActionResult();
     }
 
     [HttpPost]
@@ -23,8 +25,9 @@ public class MuscleGroupsController(IMuscleGroupRepository muscleGroupRepository
         if (CurrentUser == null || CurrentUser.Role != "Admin") 
             return UnauthorizedWithMessage("Admin access required.");
 
-        var muscleGroupId = await muscleGroupRepository.CreateAsync(muscleGroup);
-        return Ok(new { muscleGroupId });
+        var result = await metadataService.CreateMuscleGroupAsync(muscleGroup);
+        if (result.IsSuccess) return Ok(new { muscleGroupId = result.Value });
+        return result.ToActionResult();
     }
 
     [HttpDelete("{muscleGroupId}")]
@@ -33,7 +36,6 @@ public class MuscleGroupsController(IMuscleGroupRepository muscleGroupRepository
         if (CurrentUser == null || CurrentUser.Role != "Admin") 
             return UnauthorizedWithMessage("Admin access required.");
 
-        await muscleGroupRepository.DeleteAsync(muscleGroupId);
-        return NoContent();
+        return (await metadataService.DeleteMuscleGroupAsync(muscleGroupId)).ToActionResult();
     }
 }
