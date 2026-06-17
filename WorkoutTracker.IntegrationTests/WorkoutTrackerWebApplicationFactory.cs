@@ -21,7 +21,7 @@ public class WorkoutTrackerWebApplicationFactory : WebApplicationFactory<Program
   //In interfration tests, the WebApplicationFactory creates a "Virtual Server." When the test sends a request via the
   //HttpClient, the request never actually leaves your RAM.It is handed directly from the test code to the API code.This
   //makes the tests extremely fast and avoids "Port already in use" errors.
-    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    protected override void ConfigureWebHost(IWebHostBuilder builder) //webbuilder directly uses the real api's etc via DI in program.cs
     {
         // UseSetting is a reliable way to override configuration in WebApplicationFactory for Minimal APIs.
         builder.UseSetting("ConnectionStrings:DefaultConnection", "Server=127.0.0.1;Database=repvectortest;User=root;Password=;");

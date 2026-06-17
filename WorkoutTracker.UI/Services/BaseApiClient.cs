@@ -45,6 +45,7 @@ public abstract class BaseApiClient
     }
 
     /// Handles an unsuccessful HTTP response by creating a failed Result object with mapped error details.
+    /// Post requests that expect a return value. By using T we can return a Result<T> with the appropriate type, while still providing error details.
     protected async Task<Result<T>> HandleFailure<T>(HttpResponseMessage response)
     {
         var message = await TryGetErrorMessage(response);
@@ -53,6 +54,7 @@ public abstract class BaseApiClient
     }
 
     /// Handles an unsuccessful HTTP response by creating a failed non-generic Result object.
+    /// For Get requests that don't return data.
     protected async Task<Result> HandleFailure(HttpResponseMessage response)
     {
         var message = await TryGetErrorMessage(response);
